@@ -8,6 +8,7 @@
   },
   "dependencies": {},
   "devDependencies": {
+    "ganache-cli": "^6.1.6",
     "mockjs": "^1.0.1-beta3",
     "sleep-promise": "^2.0.0",
     "truffle": "^4.1.13",

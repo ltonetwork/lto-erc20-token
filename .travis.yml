@@ -6,6 +6,7 @@ node_js:
 before_script:
   - ganache-cli -p 7545 > /dev/null &
   - sleep 5
+  - truffle compile
   - truffle migrate
   - truffle test
 
