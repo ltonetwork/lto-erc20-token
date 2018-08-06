@@ -14,7 +14,8 @@
     "zeppelin-solidity": "^1.6.0"
   },
   "scripts": {
-    "test": "truffle migrate && truffle test"
+    "test": "migrate && truffle test",
+    "migrate": "rm -rf build && truffle migrate"
   },
   "repository": {
     "type": "git",
