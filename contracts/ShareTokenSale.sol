@@ -7,7 +7,7 @@ import 'zeppelin-solidity/contracts/token/ERC20/ERC20.sol';
 
 /**
  * @title ERC20 FSN Token Generation and Voluntary Participants Program
- * @dev see https://github.com/FusionFoundation/TokenSale
+ * @dev see https://github.com/legalthings/tokensale
  */
 contract ShareTokenSale is Ownable {
 

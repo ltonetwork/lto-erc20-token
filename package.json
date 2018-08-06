@@ -1,7 +1,7 @@
 {
   "name": "tokensale",
   "version": "1.0.0",
-  "description": "FUSION is a public blockchain devoting itself to creating an inclusive cryptofinancial platform by providing cross-chain, cross-organization, and cross-datasource smart contracts.",
+  "description": "LegalThings tokensale.",
   "main": "truffle.js",
   "directories": {
     "test": "test"
@@ -17,12 +17,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/FUSIONFoundation/TokenSale.git"
+    "url": "git+https://github.com/legalthings/tokensale.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/FUSIONFoundation/TokenSale/issues"
+    "url": "https://github.com/legalthings/tokensale/issues"
   },
-  "homepage": "https://github.com/FUSIONFoundation/TokenSale#readme"
+  "homepage": "https://github.com/legalthings/tokensale#readme"
 }

@@ -1,42 +1,4 @@
-/*
-
-Used config
-
-MNEMONIC
-edit avoid behind drop fit mouse fly enable mandate world return circle
-
-
-
-// 需要修改stages 里面的duration 以便快速测试
-// 需要修改startTime 大概比当前时间晚2-3分钟 以便测试 未开始的流程
-// 拷贝下列Config 到 config.json
-
-{
-    "token":{
-        "totalSupply" : 57344000,
-        "name" : "Fusion Token",
-        "symbol" : "FSN",
-        "decimals" : 18
-    },
-    "tokenSale":{
-        "receiverAddr" : "0x48132E8f6f253B7Bab9E3BcFE7234209a0FB57A3", //accounts[9]
-        "totalSaleAmount" : 204800,        
-        "stages" : [
-            {"rate": 420, "duration":120},
-            {"rate": 400, "duration":120}
-        ],
-        "startTime" : 大概比当前时间晚 2-3分钟 的 unix时间戳,
-        "userWithdrawalDelaySec" : 60,
-        "clearDelaySec" : 60
-    }
-}
-
-
-
-
-*/
-
-var Token = artifacts.require("./FUSIONToken.sol");
+var Token = artifacts.require("./LEGALToken.sol");
 var TokenSale = artifacts.require("./ShareTokenSale.sol");
 var config = require("../config.json");
 var tokenConfig = config.token;
