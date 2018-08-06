@@ -10,10 +10,11 @@
   "devDependencies": {
     "mockjs": "^1.0.1-beta3",
     "sleep-promise": "^2.0.0",
+    "truffle": "^4.1.13",
     "zeppelin-solidity": "^1.6.0"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "truffle migrate && truffle test"
   },
   "repository": {
     "type": "git",

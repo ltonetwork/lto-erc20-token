@@ -1,5 +1,5 @@
-var Token = artifacts.require("./LEGALToken.sol");
-var TokenSale = artifacts.require("./ShareTokenSale.sol");
+var Token = artifacts.require("./LEGALToken");
+var TokenSale = artifacts.require("./ShareTokenSale");
 var config = require("../config.json");
 var tokenConfig = config.token;
 var tokenSaleConfig = config.tokenSale;
