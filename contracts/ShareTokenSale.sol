@@ -176,7 +176,7 @@ contract ShareTokenSale is Ownable {
         }
         pi.withdrew = true;
         withdrawn = withdrawn.add(1);
-        var (sendEther, usedEther, getToken) = getSaleInfo(purchaser);
+        (uint256 sendEther, uint256 usedEther, uint256 getToken) = getSaleInfo(purchaser);
         if (usedEther > 0 && getToken > 0) {
             receiverAddr.transfer(usedEther);
             token.transfer(purchaser, getToken);
