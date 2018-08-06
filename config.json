@@ -1,0 +1,19 @@
+{
+    "token":{
+        "totalSupply" : 57344000,
+        "name" : "Fusion Token",
+        "symbol" : "FSN",
+        "decimals" : 18
+    },
+    "tokenSale":{
+        "receiverAddr" : null ,
+        "totalSaleAmount" : 20480000,        
+        "stages" : [
+            {"rate": 420, "duration":86400},
+            {"rate": 400, "duration":777600}
+        ],
+        "startTime" : 1517486400,
+        "userWithdrawalDelaySec" : 86400,
+        "clearDelaySec" : 1296000
+    }
+}
