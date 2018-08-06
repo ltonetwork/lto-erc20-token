@@ -68,7 +68,7 @@ contract ShareTokenSale is Ownable {
         _;
     }
 
-    function ShareTokenSale(address _receiverAddr, address _tokenAddr, uint256 _totalSaleAmount, uint256 _startTime) public {
+    constructor (address _receiverAddr, address _tokenAddr, uint256 _totalSaleAmount, uint256 _startTime) public {
         require(_receiverAddr != address(0));
         require(_tokenAddr != address(0));
         require(_totalSaleAmount > 0);

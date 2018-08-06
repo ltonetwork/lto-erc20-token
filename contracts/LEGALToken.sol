@@ -8,7 +8,7 @@ contract LEGALToken is StandardToken {
     string public symbol;
     uint8 public decimals;   
 
-    function LEGALToken(uint256 _initialSupply, string _tokenName, string _tokenSymbol, uint8 _decimals) public {
+    constructor (uint256 _initialSupply, string _tokenName, string _tokenSymbol, uint8 _decimals) public {
         totalSupply_ = _initialSupply;
         balances[msg.sender] = _initialSupply;
         name = _tokenName;

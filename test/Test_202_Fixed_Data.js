@@ -24,7 +24,7 @@ function sleepSec(sec){
     return sleep(sec * 1000); // sleep use ms
 }
 
-contract('Fiexd Data test', function(accounts) {
+contract('Fixed Data test', function(accounts) {
     var tokenInstance = null;
     var toknSaleInstance = null;
 
@@ -44,7 +44,7 @@ contract('Fiexd Data test', function(accounts) {
         });
     });
 
-    it("Contract TokenSale Fiexd Data Will be correct", () => {
+    it("Contract TokenSale Fixed Data Will be correct", () => {
         return toknSaleInstance.startTime().then(time => {            
             console.log("StartTime:", time.toNumber());
             //wating for starting

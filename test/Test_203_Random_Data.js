@@ -79,7 +79,7 @@ contract('Random Data test', function(accounts) {
         });
     });
 
-    it("Contract TokenSale Fiexd Data Will be correct", () => {
+    it("Contract TokenSale Fixed Data Will be correct", () => {
         return toknSaleInstance.startTime().then(time => {            
             console.log("StartTime:", time.toNumber());
             //wating for starting
