@@ -1,21 +1,15 @@
 {
     "token": {
-        "totalSupply": 375000000,
+        "total_supply": 375000000,
         "name": "Legal Token",
         "symbol": "LEGAL",
         "decimals": 8
     },
-    "tokenSale": {
-        "receiverAddr": null,
-        "totalSaleAmount": 375000000,
-        "stages": [
-            {
-                "rate": 1,
-                "duration": 86400
-            }
-        ],
-        "startTime": 1517486400,
-        "userWithdrawalDelaySec": 86400,
-        "clearDelaySec": 1296000
+    "sale": {
+        "receiver_address": null,
+        "total_sale_amount": 375000000,
+        "start_time": null,
+        "end_time": null,
+        "rate": 1
     }
 }

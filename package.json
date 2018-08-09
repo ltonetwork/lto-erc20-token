@@ -6,16 +6,19 @@
   "directories": {
     "test": "test"
   },
-  "dependencies": {},
+  "dependencies": {
+    "moment": "^2.22.2"
+  },
   "devDependencies": {
     "ganache-cli": "^6.1.6",
+    "mocha": "^5.2.0",
     "mockjs": "^1.0.1-beta3",
     "sleep-promise": "^2.0.0",
     "truffle": "^4.1.13",
     "zeppelin-solidity": "^1.6.0"
   },
   "scripts": {
-    "test": "migrate && truffle test",
+    "test": "npm run migrate && truffle test",
     "migrate": "rm -rf build && truffle migrate"
   },
   "repository": {
