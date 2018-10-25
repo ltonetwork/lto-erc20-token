@@ -1,74 +1,131 @@
-const Token = artifacts.require('./LegalToken');
-const Sale = artifacts.require('./LegalCrowdsale');
-const config = require('../config.json');
-const moment = require('moment');
-const assert = require('assert');
+/*
+Any Config
+*/
 
-function bign(number) {
-  return web3.toBigNumber(10).pow(config.token.decimals).mul(number);
+
+
+var Token = artifacts.require("./LTOToken.sol");
+var TokenSale = artifacts.require("./LTOTokenSale.sol");
+var config = require("../config.json");
+var tokenConfig = config.token;
+var tokenSaleConfig = config.tokenSale;
+var etherDecimals = 18;
+
+function convertDecimals(number, ether) {
+    let decimals = tokenConfig.decimals;
+    if (ether) {
+      decimals = etherDecimals;
+    }
+    return web3.toBigNumber(10).pow(decimals).mul(number);
 }
 
-contract('Initial test', (accounts) => {
-  describe('Token', () => {
-    it('should have been deployed', async () => {
-      const token = await Token.deployed();
-      assert.notEqual(token, null);
-    });
+function getReceiverAddr(defaultAddr) {
+    if(tokenSaleConfig.receiverAddr) {
+        return tokenSaleConfig.receiverAddr;
+    }
+    return defaultAddr;
+}
 
-    it('should have correct params', async () => {
-      const token = await Token.deployed();
-      assert.equal(await token.name(), config.token.name);
-      assert.equal(await token.symbol(), config.token.symbol);
-      assert.equal(await token.decimals(), config.token.decimals);
-      assert.deepEqual(await token.totalSupply(), bign(config.token.total_supply));
-    });
+
+contract('Initial test', function(accounts) {
+
+  var defaultAddr = accounts[0];
+  var receiverAddr = getReceiverAddr(defaultAddr);
+  var totalSaleAmount = convertDecimals(tokenSaleConfig.totalSaleAmount);
+  var totalSupply = convertDecimals(tokenConfig.totalSupply);
+  var bridgeSupply = convertDecimals(tokenConfig.bridgeSupply);
+  var startTime = web3.toBigNumber(tokenSaleConfig.startTime);
+  var keepAmount = (totalSupply.sub(totalSaleAmount)).sub(bridgeSupply);
+  var tokenInstance = null;
+  var toknSaleInstance = null;
+
+  it("Contract Token will deployed", async () => {
+    const instance = await Token.deployed();
+    console.log('Token address: ', Token.address);
+    tokenInstance = instance;
+    assert.notEqual(tokenInstance, null);
   });
 
-  describe('Sale', () => {
-    const defaultAddr = accounts[0];
-    const receiverAddr = config.sale.receiver_address || defaultAddr;
-    const totalSaleAmount = bign(config.sale.total_sale_amount);
-    const totalSupply = bign(config.token.total_supply);
-    const keepAmount = totalSupply.sub(totalSaleAmount);
+  it("Contract TokenSale will deployed", async() => {
+    const instance = await TokenSale.deployed();
+    console.log('TokenSale address: ', Token.address);
+    toknSaleInstance = instance;
+    assert.notEqual(toknSaleInstance, null);
+  });
 
-    it('should have been deployed', async () => {
-      const sale = await Sale.deployed();
-      assert.notEqual(sale, null);
-    });
+  it("Token Info will correct", async () => {
+    const name = await tokenInstance.name();
+    console.log('name:', name);
+    assert.equal(name, tokenConfig.name);
 
-    it('should have correct params', async () => {
-      const sale = await Sale.deployed();
-      assert.equal(await sale.rate(), config.sale.rate);
-      assert.equal(await sale.wallet(), receiverAddr);
-      assert.equal(await sale.token(), Token.address);
+    const symbol = await tokenInstance.symbol();
+    console.log('symbol:', symbol);
+    assert.equal(symbol, tokenConfig.symbol);
 
-      const latestBlock = await web3.eth.getBlock('latest');
-      const expectedStartTime = config.sale.start_time || moment.unix(latestBlock.timestamp).add(7, 'd').unix();
-      const expectedEndTime = config.sale.end_time || moment.unix(latestBlock.timestamp).add(14, 'd').unix();
-      const actualStartTime = Number((await sale.openingTime()).toString());
-      const actualEndTime = Number((await sale.closingTime()).toString());
-      const deltaStartTime = expectedStartTime - actualStartTime;
-      const deltaEndTime = expectedEndTime - actualEndTime;
+    const decimals = await tokenInstance.decimals();
+    console.log('decimals:', decimals);
+    assert(decimals.equals(tokenConfig.decimals));
 
-      // the current block time may not be equal to the configured sale time, so we give it a margin
-      assert(deltaStartTime >= 0 && deltaStartTime < 10);
-      assert(deltaEndTime >= 0 && deltaEndTime < 10);
-    });
+    const totalSupply = await tokenInstance.totalSupply();
+    console.log('totalSupply:', totalSupply);
+    assert(totalSupply.equals(totalSupply));
+  });
+
+  it("Sale Info will correct", async () => {
+    const address = await toknSaleInstance.token();
+
+    console.log('Token Address:', address);
+    assert.equal(address, tokenInstance.address);
 
 
-    it("should have correct token balance", async () => {
-      const token = await Token.deployed();
-      const sale = await Sale.deployed();
+    const receiverAddress = await toknSaleInstance.receiverAddr();
+    console.log('Receiver Address:', receiverAddress);
+    assert.equal(receiverAddress.toLowerCase(), receiverAddr.toLowerCase());
 
-      let total = web3.toBigNumber(0);
-      const rcvBalance = await token.balanceOf(receiverAddr);
-      assert.deepEqual(rcvBalance, keepAmount);
-      total = total.add(keepAmount);
 
-      const saleBalance = await token.balanceOf(sale.address)
-      assert.deepEqual(saleBalance, totalSaleAmount);
-      total = total.add(totalSaleAmount);
-      assert.deepEqual(total, totalSupply);
-    });
+    const Amount = await toknSaleInstance.totalSaleAmount();
+    console.log('Total Sale Amount:', Amount);
+    assert(Amount.equals(totalSaleAmount));
+
+
+    const time = await toknSaleInstance.startTime();
+    console.log('Start Time:', time.toNumber());
+    assert(time.equals(startTime));
+
+
+    var promises = [];
+    promises.push(toknSaleInstance.endTime());
+    promises.push(toknSaleInstance.userWithdrawalStartTime());
+    promises.push(toknSaleInstance.clearStartTime());
+    const times = await Promise.all(promises);
+
+    console.log('End Time:', times[0]);
+    console.log('UserWithdrawalStartTime:', times[1]);
+    console.log('ClearStartTime:', times[2]);
+    endTime = web3.toBigNumber(startTime.toNumber());
+    endTime = endTime.plus(tokenSaleConfig.duration);
+
+    assert(times[0].equals(endTime));
+    assert(times[1].equals(endTime.plus(tokenSaleConfig.userWithdrawalDelaySec)));
+    assert(times[2].equals(endTime.plus(tokenSaleConfig.clearDelaySec)));
+
+    const globalAmount = await toknSaleInstance.globalAmount();
+    assert((await toknSaleInstance.rate()).equals(tokenSaleConfig.rate));
+    const count = await toknSaleInstance.getPurchaserCount();
+
+    assert(count.equals(0));
+  });
+
+  it("Token Balance will correct", async () => {
+    let total = web3.toBigNumber(0);
+    const balance = await tokenInstance.balanceOf(receiverAddr);
+    assert(balance.equals(keepAmount));
+    total = total.add(keepAmount);
+    total = total.add(bridgeSupply);
+
+    const newBalance = await tokenInstance.balanceOf(toknSaleInstance.address);
+    assert(newBalance.equals(totalSaleAmount));
+    total = total.add(totalSaleAmount);
+    assert(total.equals(totalSupply));
   });
 });
