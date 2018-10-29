@@ -1,13 +1,7 @@
 language: node_js
 
 node_js:
-  - "10.4.1"
-
-before_script:
-  - ganache-cli -p 7545 > /dev/null &
-  - sleep 5
-  - truffle migrate
-  - truffle test
+  - "10.7"
 
 script:
   npm test
