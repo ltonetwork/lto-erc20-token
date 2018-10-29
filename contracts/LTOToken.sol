@@ -6,28 +6,23 @@ contract LTOToken is StandardToken {
 
   uint256 internal internalTotalSupply;
 
-  string public name;
-  string public symbol;
-  uint8 public decimals;
+  string public name = "LTO Network Token";
+  string public symbol = "LTO";
+  uint8 public decimals = 8;
   address public bridgeAddress;
 
-  mapping (address => address) internal intermediateAddresses;
+  mapping (address => address) public intermediateAddresses;
 
   constructor(
     uint256 _initialSupply,
-    string _tokenName,
-    string _tokenSymbol,
-    uint8 _decimals,
     address _bridgeAddress,
     uint256 _bridgeSupply
   ) public {
-    internalTotalSupply = _initialSupply;
-    totalSupply_ = _initialSupply - _bridgeSupply;
-    balances[msg.sender] = _initialSupply - _bridgeSupply;
+    internalTotalSupply = _initialSupply + _bridgeSupply;
+    totalSupply_ = _initialSupply;
+    balances[msg.sender] = _initialSupply;
     balances[_bridgeAddress] = _bridgeSupply;
-    name = _tokenName;
-    symbol = _tokenSymbol;
-    decimals = _decimals;
+
     bridgeAddress = _bridgeAddress;
   }
 
@@ -45,14 +40,15 @@ contract LTOToken is StandardToken {
     require(_value <= balances[msg.sender]);
     require(_to != address(0));
 
+    address to = _to;
     // Check if the _to contains a intermediate address
     // if so transfer to the bridge instead
-    if (intermediateAddresses[_to] == _to) {
-      _to = bridgeAddress;
+    if (intermediateAddresses[to] == to) {
+      to = bridgeAddress;
     }
 
     balances[msg.sender] = balances[msg.sender].sub(_value);
-    balances[_to] = balances[_to].add(_value);
+    balances[to] = balances[to].add(_value);
     emit Transfer(msg.sender, _to, _value);
 
     recalculateTotalSupply();

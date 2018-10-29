@@ -32,13 +32,10 @@ module.exports = function(deployer, network, accounts) {
 
   return deployer.deploy(Token,
     totalSupply,
-    tokenConfig.name,
-    tokenConfig.symbol,
-    tokenConfig.decimals,
     tokenConfig.bridgeAddr,
     bridgeSupply)
     .then(function () {
-      return deployer.deploy(TokenSale, receiverAddr, Token.address, totalSaleAmount, startTime);
+      return deployer.deploy(TokenSale, receiverAddr, Token.address, totalSaleAmount);
     })
     .then(() => {
       return Token.deployed();
@@ -52,7 +49,7 @@ module.exports = function(deployer, network, accounts) {
       return tokenInstance.transfer(toknSaleInstance.address, totalSaleAmount);
     })
     .then(tx => {
-      return toknSaleInstance.startSale(tokenSaleConfig.rate, tokenSaleConfig.duration, userWithdrawalDelaySec, clearDelaySec);
+      return toknSaleInstance.startSale(tokenSaleConfig.rate, startTime, tokenSaleConfig.duration, userWithdrawalDelaySec, clearDelaySec);
     })
     .then(tx => {
       if(defaultAddr != receiverAddr) {

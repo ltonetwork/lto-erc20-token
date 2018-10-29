@@ -2,7 +2,7 @@ pragma solidity ^0.4.24;
 
 import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
-import 'zeppelin-solidity/contracts/token/ERC20/ERC20.sol';
+import 'zeppelin-solidity/contracts/token/ERC20/SafeERC20.sol';
 
 
 /**
@@ -12,6 +12,7 @@ import 'zeppelin-solidity/contracts/token/ERC20/ERC20.sol';
 contract LTOTokenSale is Ownable {
 
   using SafeMath for uint256;
+  using SafeERC20 for ERC20;
 
   ERC20 public token;
   address public receiverAddr;
@@ -62,15 +63,14 @@ contract LTOTokenSale is Ownable {
     _;
   }
 
-  constructor(address _receiverAddr, address _tokenAddr, uint256 _totalSaleAmount, uint256 _startTime) public {
+  constructor(address _receiverAddr, ERC20 _token, uint256 _totalSaleAmount) public {
     require(_receiverAddr != address(0));
-    require(_tokenAddr != address(0));
+    require(_token != address(0));
     require(_totalSaleAmount > 0);
-    require(_startTime > 0);
+
     receiverAddr = _receiverAddr;
-    token = ERC20(_tokenAddr);
+    token = _token;
     totalSaleAmount = _totalSaleAmount;
-    startTime = _startTime;
   }
 
   function isStarted() public view returns(bool) {
@@ -89,31 +89,18 @@ contract LTOTokenSale is Ownable {
     return now > clearStartTime;
   }
 
-  function startSale(uint256 _rate, uint256 duration, uint256 userWithdrawalDelaySec, uint256 clearDelaySec) public onlyOwner {
+  function startSale(uint256 _rate, uint256 _startTime, uint256 duration, uint256 userWithdrawalDelaySec, uint256 clearDelaySec) public onlyOwner {
     require(endTime == 0);
-    require(_rate != 0);
-    require(duration != 0);
+    require(_startTime > 0);
+    require(_rate > 0);
+    require(duration > 0);
 
     rate = _rate;
+    startTime = _startTime;
     endTime = startTime.add(duration);
     userWithdrawalStartTime = endTime.add(userWithdrawalDelaySec);
     clearStartTime = endTime.add(clearDelaySec);
   }
-
-  //    function startSale(uint256[] rates, uint256[] durations, uint256 userWithdrawalDelaySec, uint256 clearDelaySec) public onlyOwner {
-  //        require(endTime == 0);
-  //        require(durations.length == rates.length);
-  //        delete stages;
-  //        endTime = startTime;
-  //        for (uint256 i = 0; i < durations.length; i++) {
-  //            uint256 rate = rates[i];
-  //            uint256 duration = durations[i];
-  //            stages.push(Stage({rate: rate, duration: duration, startTime:endTime}));
-  //            endTime = endTime.add(duration);
-  //        }
-  //        userWithdrawalStartTime = endTime.add(userWithdrawalDelaySec);
-  //        clearStartTime = endTime.add(clearDelaySec);
-  //    }
 
   function getPurchaserCount() public view returns(uint256) {
     return purchaserList.length;
@@ -162,7 +149,7 @@ contract LTOTokenSale is Ownable {
     }
     pi.withdrew = true;
     withdrawn = withdrawn.add(1);
-    var (sendEther, usedEther, getToken) = getSaleInfo(purchaser);
+    (uint256 sendEther, uint256 usedEther, uint256 getToken) = getSaleInfo(purchaser);
     if (usedEther > 0 && getToken > 0) {
       receiverAddr.transfer(usedEther);
       token.transfer(purchaser, getToken);

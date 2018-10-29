@@ -7,19 +7,22 @@
     "test": "test"
   },
   "dependencies": {
-    "moment": "^2.22.2"
+    "moment": "^2.22.2",
+    "truffle-hdwallet-provider": "0.0.6"
   },
   "devDependencies": {
-    "ganache-cli": "^6.1.6",
+    "ethereumjs-testrpc-sc": "^6.1.6",
+    "ganache-cli": "^6.1.8",
     "mocha": "^5.2.0",
     "mockjs": "^1.0.1-beta3",
     "sleep-promise": "^2.0.0",
+    "solidity-coverage": "^0.5.11",
     "truffle": "^4.1.13",
     "zeppelin-solidity": "^1.6.0"
   },
   "scripts": {
     "only-test": "truffle test",
-    "test": "npm run migrate && truffle test",
+    "test": "scripts/test.sh --network test",
     "migrate": "rm -rf build && truffle migrate"
   },
   "repository": {
