@@ -244,6 +244,9 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3]) => {
               try {
                 const tx = await this.tokenSale.withdrawalFor(0, 1);
                 assert.equal(tx.receipt.status, '0x1', "Will Success");
+
+                balance = await this.token.balanceOf(user1);
+                assert(balance.greaterThan(convertDecimals(300)));
               } catch (e) {
                 console.log(e);
               }
@@ -275,11 +278,16 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3]) => {
                 await sleepSec(time.plus(2).sub(getUnixTime()).toNumber());
 
                 const tx = await this.tokenSale.withdrawal({from: user2});
-
                 assert.equal(tx.receipt.status, '0x1', "Will Success");
+
+                let balance = await this.token.balanceOf(user2);
+                assert(balance.greaterThan(convertDecimals(300)));
 
                 const tx2 = await this.tokenSale.withdrawal({from: user3});
                 assert.equal(tx2.receipt.status, '0x1', "Will Success");
+
+                balance = await this.token.balanceOf(user3);
+                assert(balance.greaterThan(convertDecimals(300)));
               });
 
               it('should not be possible to clear the token sale', async () => {
