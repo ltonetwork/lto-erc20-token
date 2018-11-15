@@ -10,8 +10,16 @@
     "tokenSale":{
         "receiverAddr" : null ,
         "totalSaleAmount" : 50000000,
-        "rate": 400,
-        "duration": 86400,
+        "stages": [
+            {
+                "rate": 420,
+                "duration": 86400
+            },
+            {
+                "rate": 400,
+                "duration": 518400
+            }
+        ],
         "startTime" : 1542672000,
         "userWithdrawalDelaySec" : 86400,
         "clearDelaySec" : 1296000

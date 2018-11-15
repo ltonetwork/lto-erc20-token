@@ -49,7 +49,13 @@ module.exports = function(deployer, network, accounts) {
       return tokenInstance.transfer(toknSaleInstance.address, totalSaleAmount);
     })
     .then(tx => {
-      return toknSaleInstance.startSale(tokenSaleConfig.rate, startTime, tokenSaleConfig.duration, userWithdrawalDelaySec, clearDelaySec);
+      const rates = [];
+      const durations = [];
+      tokenSaleConfig.stages.forEach(element => {
+        rates.push(element.rate);
+        durations.push(element.duration);
+      });
+      return toknSaleInstance.startSale(startTime, rates, durations, userWithdrawalDelaySec, clearDelaySec);
     })
     .then(tx => {
       if(defaultAddr != receiverAddr) {

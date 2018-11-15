@@ -24,14 +24,19 @@ contract LTOTokenSale is Ownable {
   uint256 public clearStartTime;
   uint256 public withdrawn;
   uint256 public proportion = 1 ether;
-  uint256 public globalAmount;
-  uint256 public rate;
+  mapping(uint256 => uint256) public globalAmounts;
+
+  struct Stage {
+    uint256 rate;
+    uint256 duration;
+    uint256 startTime;
+  }
+  Stage[] public stages;
 
 
   struct PurchaserInfo {
     bool withdrew;
     bool recorded;
-    uint256 amount;
     mapping(uint256 => uint256) amounts;
   }
   mapping(address => PurchaserInfo) public purchaserMapping;
@@ -89,17 +94,31 @@ contract LTOTokenSale is Ownable {
     return now > clearStartTime;
   }
 
-  function startSale(uint256 _rate, uint256 _startTime, uint256 duration, uint256 userWithdrawalDelaySec, uint256 clearDelaySec) public onlyOwner {
+  function startSale(uint256 _startTime, uint256[] rates, uint256[] durations, uint256 userWithdrawalDelaySec, uint256 clearDelaySec) public onlyOwner {
     require(endTime == 0);
+    require(durations.length == rates.length);
     require(_startTime > 0);
-    require(_rate > 0);
-    require(duration > 0);
 
-    rate = _rate;
+    delete stages;
     startTime = _startTime;
-    endTime = startTime.add(duration);
+    endTime = startTime;
+    for (uint256 i = 0; i < durations.length; i++) {
+      uint256 rate = rates[i];
+      uint256 duration = durations[i];
+      stages.push(Stage({rate: rate, duration: duration, startTime:endTime}));
+      endTime = endTime.add(duration);
+    }
     userWithdrawalStartTime = endTime.add(userWithdrawalDelaySec);
     clearStartTime = endTime.add(clearDelaySec);
+  }
+
+  function getCurrentStage() public onlyOpenTime view returns(uint256) {
+    for (uint256 i = stages.length - 1; i >= 0; i--) {
+      if (now >= stages[i].startTime) {
+        return i;
+      }
+    }
+    revert();
   }
 
   function getPurchaserCount() public view returns(uint256) {
@@ -117,9 +136,18 @@ contract LTOTokenSale is Ownable {
 
   function getSaleInfo(address purchaser) public view returns (uint256, uint256, uint256) {
     PurchaserInfo storage pi = purchaserMapping[purchaser];
-    uint256 sendEther = pi.amount;
-    uint256 usedEther = sendEther.mul(proportion).div(1 ether);
-    uint256 getToken = usedEther.mul(rate);
+    uint256 sendEther = 0;
+    uint256 usedEther = 0;
+    uint256 getToken = 0;
+    for (uint256 i = 0; i < stages.length; i++) {
+      sendEther = sendEther.add(pi.amounts[i]);
+      uint256 stageUsedEther = pi.amounts[i].mul(proportion).div(1 ether);
+      uint256 stageGetToken = stageUsedEther.mul(stages[i].rate);
+      if (stageGetToken > 0) {
+        getToken = getToken.add(stageGetToken);
+        usedEther = usedEther.add(stageUsedEther);
+      }
+    }
     return (sendEther, usedEther, getToken);
   }
 
@@ -129,15 +157,16 @@ contract LTOTokenSale is Ownable {
 
   function buy() payable public onlyOpenTime {
     require(msg.value >= 0.1 ether);
+    uint256 stageIndex = getCurrentStage();
     uint256 amount = msg.value;
     PurchaserInfo storage pi = purchaserMapping[msg.sender];
     if (!pi.recorded) {
       pi.recorded = true;
       purchaserList.push(msg.sender);
     }
-    pi.amount = pi.amount.add(amount);
-    globalAmount = globalAmount.add(amount);
-    totalWannaBuyAmount = totalWannaBuyAmount.add(amount.mul(rate));
+    pi.amounts[stageIndex] = pi.amounts[stageIndex].add(amount);
+    globalAmounts[stageIndex] = globalAmounts[stageIndex].add(amount);
+    totalWannaBuyAmount = totalWannaBuyAmount.add(amount.mul(stages[stageIndex].rate));
     _calcProportion();
   }
 

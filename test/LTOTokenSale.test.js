@@ -38,7 +38,16 @@ function sleepSec(sec){
 }
 
 contract('LTOTokenSale', ([owner, bridge, user1, user2, user3]) => {
-  const rate = 400;
+  const configStages = [
+    {
+      rate: 420,
+      duration: 3
+    },
+    {
+      rate: 400,
+      duration: 5
+    }
+  ];
   const tokenSupply = convertDecimals(10000);
   const totalSaleAmount = convertDecimals(1000);
   const keepAmount = tokenSupply.sub(totalSaleAmount);
@@ -79,10 +88,17 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3]) => {
       const clearDelaySec = new BigNumber(5);
       const duration = 5;
 
+      const rates = [];
+      const durations = [];
+      configStages.forEach(element => {
+        rates.push(element.rate);
+        durations.push(element.duration);
+      });
+
       before(async () => {
         this.tokenSale = await LTOTokenSale.new(owner, this.token.address, totalSaleAmount);
         await this.token.transfer(this.tokenSale.address, totalSaleAmount);
-        await this.tokenSale.startSale(rate, startTime, duration, userWithdrawalDelaySec, clearDelaySec);
+        await this.tokenSale.startSale(startTime, rates, durations, userWithdrawalDelaySec, clearDelaySec);
       });
 
       describe('when the token sale start date is set', () => {
@@ -100,21 +116,39 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3]) => {
           const time = await this.tokenSale.startTime();
           assert(time.equals(startTime));
 
-          const promises = [];
+          let promises = [];
           promises.push(this.tokenSale.endTime());
           promises.push(this.tokenSale.userWithdrawalStartTime());
           promises.push(this.tokenSale.clearStartTime());
           const times = await Promise.all(promises);
 
           endTime = new BigNumber(startTime.toNumber());
-          endTime = endTime.plus(duration);
+          configStages.forEach(element => {
+            endTime = endTime.plus(element.duration);
+          });
 
           assert(times[0].equals(endTime));
           assert(times[1].equals(endTime.plus(userWithdrawalDelaySec)));
           assert(times[2].equals(endTime.plus(clearDelaySec)));
 
-          const globalAmount = await this.tokenSale.globalAmount();
-          assert((await this.tokenSale.rate()).equals(rate));
+          promises = [];
+          for(let i = 0; i < tokenSaleConfig.stages.length; i++){
+            promises.push(this.tokenSale.globalAmounts(i));
+          }
+          const amounts = await Promise.all(promises);
+          for(let i = 0; i < amounts.length; i++){
+            assert(amounts[i].equals(0));
+          }
+
+          promises = [];
+          for(let i = 0; i < tokenSaleConfig.stages.length; i++){
+            promises.push(this.tokenSale.stages(i));
+          }
+          const stages = await Promise.all(promises);
+          for(let i = 0; i < stages.length; i++){
+            assert(stages[i][0].equals(configStages[i].rate));
+            assert(stages[i][1].equals(configStages[i].duration));
+          }
 
           const count = await this.tokenSale.getPurchaserCount();
           assert(count.equals(0));
