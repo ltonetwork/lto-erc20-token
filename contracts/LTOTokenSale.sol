@@ -89,7 +89,7 @@ contract LTOTokenSale is Ownable {
     return now > clearStartTime;
   }
 
-  function startSale(uint256 _rate, uint256 _startTime, uint256 duration, uint256 userWithdrawalDelaySec, uint256 clearDelaySec) public onlyOwner {
+  function startSale(uint256 _startTime, uint256 _rate, uint256 duration, uint256 userWithdrawalDelaySec, uint256 clearDelaySec) public onlyOwner {
     require(endTime == 0);
     require(_startTime > 0);
     require(_rate > 0);
@@ -119,7 +119,7 @@ contract LTOTokenSale is Ownable {
     PurchaserInfo storage pi = purchaserMapping[purchaser];
     uint256 sendEther = pi.amount;
     uint256 usedEther = sendEther.mul(proportion).div(1 ether);
-    uint256 getToken = usedEther.mul(rate);
+    uint256 getToken = usedEther.mul(rate).div(10**10);
     return (sendEther, usedEther, getToken);
   }
 
@@ -137,7 +137,7 @@ contract LTOTokenSale is Ownable {
     }
     pi.amount = pi.amount.add(amount);
     globalAmount = globalAmount.add(amount);
-    totalWannaBuyAmount = totalWannaBuyAmount.add(amount.mul(rate));
+    totalWannaBuyAmount = totalWannaBuyAmount.add(amount.mul(rate).div(10**10));
     _calcProportion();
   }
 

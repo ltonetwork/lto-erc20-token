@@ -19,6 +19,13 @@ function convertDecimals(number, ether) {
   return web3.toBigNumber(10).pow(decimals).mul(number);
 }
 
+function deconvertDecimals(number, decimals) {
+  if (!decimals) {
+    decimals = tokenConfig.decimals;
+  }
+  return number.div(web3.toBigNumber(10).pow(decimals));
+}
+
 function getReceiverAddr(defaultAddr) {
   if(tokenSaleConfig.receiverAddr) {
     return tokenSaleConfig.receiverAddr;
@@ -82,7 +89,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3]) => {
       before(async () => {
         this.tokenSale = await LTOTokenSale.new(owner, this.token.address, totalSaleAmount);
         await this.token.transfer(this.tokenSale.address, totalSaleAmount);
-        await this.tokenSale.startSale(rate, startTime, duration, userWithdrawalDelaySec, clearDelaySec);
+        await this.tokenSale.startSale(startTime, rate, duration, userWithdrawalDelaySec, clearDelaySec);
       });
 
       describe('when the token sale start date is set', () => {
@@ -114,6 +121,8 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3]) => {
           assert(times[2].equals(endTime.plus(clearDelaySec)));
 
           const globalAmount = await this.tokenSale.globalAmount();
+          assert(globalAmount.equals(0));
+
           assert((await this.tokenSale.rate()).equals(rate));
 
           const count = await this.tokenSale.getPurchaserCount();
@@ -157,6 +166,13 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3]) => {
             let receipt = web3.eth.getTransactionReceipt(hash);
             assert.equal(receipt.status, '0x1', "The Transaction will success after startTime");
 
+            assert((await this.tokenSale.totalWannaBuyAmount()).equals(convertDecimals(rate)));
+
+            let [sendEther, usedEther, getToken] = await this.tokenSale.getSaleInfo(user1);
+            assert(sendEther.equals(convertDecimals(1, true)));
+            assert(usedEther.equals(convertDecimals(1, true)));
+            assert(getToken.equals(convertDecimals(rate)));
+
             hash = await ethSendTransaction({
               from: user2,
               to: this.tokenSale.address,
@@ -166,6 +182,8 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3]) => {
             receipt = web3.eth.getTransactionReceipt(hash);
             assert.equal(receipt.status, '0x1', "The Transaction will success after startTime");
 
+            assert((await this.tokenSale.totalWannaBuyAmount()).equals(convertDecimals(2 * rate)));
+
             hash = await ethSendTransaction({
               from: user3,
               to: this.tokenSale.address,
@@ -174,6 +192,12 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3]) => {
             });
             receipt = web3.eth.getTransactionReceipt(hash);
             assert.equal(receipt.status, '0x1', "The Transaction will success after startTime");
+
+            assert((await this.tokenSale.totalWannaBuyAmount()).equals(convertDecimals(3 * rate)));
+
+            [sendEther, usedEther, getToken] = await this.tokenSale.getSaleInfo(user1);
+            assert(sendEther.equals(convertDecimals(1, true)));
+            assert(getToken.equals(totalSaleAmount.div(3).round(0)));
 
             const count = await this.tokenSale.getPurchaserCount();
             assert.equal(count.toNumber(), 3);
@@ -210,6 +234,9 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3]) => {
               try {
                 const tx = await this.tokenSale.withdrawalFor(0, 1);
                 assert.equal(tx.receipt.status, '0x1', "Will Success");
+
+                const balance = await this.token.balanceOf(user1);
+                assert(balance.equals(totalSaleAmount.div(3).round(0)));
               } catch (e) {
                 console.log(e);
               }

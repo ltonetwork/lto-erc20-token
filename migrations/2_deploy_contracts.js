@@ -49,7 +49,7 @@ module.exports = function(deployer, network, accounts) {
       return tokenInstance.transfer(toknSaleInstance.address, totalSaleAmount);
     })
     .then(tx => {
-      return toknSaleInstance.startSale(tokenSaleConfig.rate, startTime, tokenSaleConfig.duration, userWithdrawalDelaySec, clearDelaySec);
+      return toknSaleInstance.startSale(startTime, tokenSaleConfig.rate, tokenSaleConfig.duration, userWithdrawalDelaySec, clearDelaySec);
     })
     .then(tx => {
       if(defaultAddr != receiverAddr) {
