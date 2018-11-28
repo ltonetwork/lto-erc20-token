@@ -127,13 +127,12 @@ contract LTOTokenSale is Ownable {
     proportion = totalSaleAmount.mul(1 ether).div(totalWannaBuyAmount);
   }
 
-  function getSaleInfo(address purchaser) public view returns (uint256, uint256, uint256, uint256) {
+  function getSaleInfo(address purchaser) public view returns (uint256, uint256, uint256) {
     PurchaserInfo storage pi = purchaserMapping[purchaser];
     uint256 sendEther = pi.amount;
-    uint256 bonusEther = pi.bonus;
     uint256 usedEther = sendEther.mul(proportion).div(1 ether);
-    uint256 getToken = sendEther.add(bonusEther).mul(proportion).div(1 ether).mul(rate).div(10**10);
-    return (sendEther, usedEther, bonusEther, getToken);
+    uint256 getToken = sendEther.add(pi.bonus).mul(proportion).div(1 ether).mul(rate).div(10**10);
+    return (sendEther, usedEther, getToken);
   }
 
   function () payable public {
@@ -171,7 +170,7 @@ contract LTOTokenSale is Ownable {
     }
     pi.withdrew = true;
     withdrawn = withdrawn.add(1);
-    (uint256 sendEther, uint256 usedEther, uint256 bonusEther, uint256 getToken) = getSaleInfo(purchaser);
+    (uint256 sendEther, uint256 usedEther, uint256 getToken) = getSaleInfo(purchaser);
     if (usedEther > 0 && getToken > 0) {
       receiverAddr.transfer(usedEther);
       token.transfer(purchaser, getToken);

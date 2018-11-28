@@ -85,7 +85,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4]) => {
         assert.equal(receipt.status, '0x1', "The Transaction will success after startTime");
         assert((await this.tokenSale.totalWannaBuyAmount()).equals(convertDecimals(rate)));
 
-        let [sendEther, usedEther, bonusEther, getToken] = await this.tokenSale.getSaleInfo(user1);
+        let [sendEther, usedEther, getToken] = await this.tokenSale.getSaleInfo(user1);
         assert(sendEther.equals(convertDecimals(1, true)));
         assert(usedEther.equals(convertDecimals(1, true)));
         assert(getToken.equals(convertDecimals(rate)));
@@ -112,7 +112,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4]) => {
 
         assert((await this.tokenSale.totalWannaBuyAmount()).equals(convertDecimals(3 * rate)));
 
-        [sendEther, usedEther, bonusEther, getToken] = await this.tokenSale.getSaleInfo(user1);
+        [sendEther, usedEther, getToken] = await this.tokenSale.getSaleInfo(user1);
         assert(sendEther.equals(convertDecimals(1, true)));
         assert(getToken.equals(totalSaleAmount.div(3).round(0)));
 
@@ -151,7 +151,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4]) => {
         assert.equal(receipt.status, '0x1', "The Transaction will success after startTime");
         let bought = convertDecimals(rate).add(convertDecimals(rate).div(10000).mul(bonus));
 
-        let [sendEther, usedEther, bonusEther, getToken] = await this.tokenSale.getSaleInfo(user1);
+        let [sendEther, usedEther, getToken] = await this.tokenSale.getSaleInfo(user1);
         assert(sendEther.equals(convertDecimals(1, true)));
         assert(usedEther.equals(convertDecimals(1, true)));
         assert(getToken.equals(bought));
@@ -171,7 +171,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4]) => {
 
         bought = convertDecimals(rate).add(convertDecimals(rate).div(10000).mul(bonus));
 
-        [sendEther, usedEther, bonusEther, getToken] = await this.tokenSale.getSaleInfo(user1);
+        [sendEther, usedEther, getToken] = await this.tokenSale.getSaleInfo(user1);
         assert(sendEther.equals(convertDecimals(1, true)));
         assert(getToken.equals(bought));
         totalBought = totalBought.add(bought);
@@ -202,7 +202,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4]) => {
         assert.equal(receipt.status, '0x1', "The Transaction will success after startTime");
         assert((await this.tokenSale.totalWannaBuyAmount()).equals(convertDecimals(rate).add(convertDecimals(rate).div(10000).mul(bonusPercentage))));
 
-        let [sendEther, usedEther, bonusEther, getToken] = await this.tokenSale.getSaleInfo(user1);
+        let [sendEther, usedEther, getToken] = await this.tokenSale.getSaleInfo(user1);
         assert(sendEther.equals(convertDecimals(1, true)));
         assert(usedEther.equals(convertDecimals(1, true)));
         assert(getToken.equals(convertDecimals(rate).add(convertDecimals(rate).div(10000).mul(bonusPercentage))));
@@ -229,7 +229,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4]) => {
 
         assert((await this.tokenSale.totalWannaBuyAmount()).equals(convertDecimals(3 * rate).add(convertDecimals(3 * rate).div(10000).mul(bonusPercentage))));
 
-        [sendEther, usedEther, bonusEther, getToken] = await this.tokenSale.getSaleInfo(user1);
+        [sendEther, usedEther, getToken] = await this.tokenSale.getSaleInfo(user1);
         assert(sendEther.equals(convertDecimals(1, true)));
         assert(getToken.equals(totalSaleAmount.div(3).round(0)));
 
@@ -268,7 +268,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4]) => {
         assert.equal(receipt.status, '0x1', "The Transaction will success after startTime");
         let bought = convertDecimals(rate).add(convertDecimals(rate).div(10000).mul(bonus));
 
-        let [sendEther, usedEther, bonusEther, getToken] = await this.tokenSale.getSaleInfo(user1);
+        let [sendEther, usedEther, getToken] = await this.tokenSale.getSaleInfo(user1);
         assert(sendEther.equals(convertDecimals(1, true)));
         assert(usedEther.equals(convertDecimals(1, true)));
         assert(getToken.equals(bought));
@@ -288,7 +288,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4]) => {
 
         bought = convertDecimals(rate).add(convertDecimals(rate).div(10000).mul(bonus));
 
-        [sendEther, usedEther, bonusEther, getToken] = await this.tokenSale.getSaleInfo(user2);
+        [sendEther, usedEther, getToken] = await this.tokenSale.getSaleInfo(user2);
         assert(sendEther.equals(convertDecimals(1, true)));
 
         assert(getToken.equals(bought));
@@ -315,7 +315,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4]) => {
         let bought = convertDecimals(rate).add(convertDecimals(rate).div(10000).mul(bonus));
         const boughtUser1 = bought;
 
-        let [sendEther, usedEther, bonusEther, getToken] = await this.tokenSale.getSaleInfo(user1);
+        let [sendEther, usedEther, getToken] = await this.tokenSale.getSaleInfo(user1);
         assert(sendEther.equals(convertDecimals(1, true)));
         assert(usedEther.equals(convertDecimals(1, true)));
         assert(getToken.equals(bought));
@@ -366,10 +366,10 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4]) => {
 
         const proportion = totalSaleAmount.div(totalBought);
 
-        [sendEther, usedEther, bonusEther, getToken] = await this.tokenSale.getSaleInfo(user4);
+        [sendEther, usedEther, getToken] = await this.tokenSale.getSaleInfo(user4);
         assert(getToken.equals(proportion.mul(bought).round(0)));
 
-        [sendEther, usedEther, bonusEther, getToken] = await this.tokenSale.getSaleInfo(user1);
+        [sendEther, usedEther, getToken] = await this.tokenSale.getSaleInfo(user1);
         assert(getToken.equals(proportion.mul(boughtUser1).round(0)));
       });
     });
