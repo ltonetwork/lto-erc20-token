@@ -19,6 +19,9 @@ contract LTOTokenSale is Ownable {
   uint256 public totalSaleAmount;
   uint256 public totalWannaBuyAmount;
   uint256 public startTime;
+  uint256 public bonusEndTime;
+  uint256 public bonusPercentage;
+  uint256 public bonusDecreaseRate;
   uint256 public endTime;
   uint256 public userWithdrawalStartTime;
   uint256 public clearStartTime;
@@ -27,12 +30,11 @@ contract LTOTokenSale is Ownable {
   uint256 public globalAmount;
   uint256 public rate;
 
-
   struct PurchaserInfo {
     bool withdrew;
     bool recorded;
     uint256 amount;
-    mapping(uint256 => uint256) amounts;
+    uint256 bonus;
   }
   mapping(address => PurchaserInfo) public purchaserMapping;
   address[] public purchaserList;
@@ -89,14 +91,23 @@ contract LTOTokenSale is Ownable {
     return now > clearStartTime;
   }
 
-  function startSale(uint256 _startTime, uint256 _rate, uint256 duration, uint256 userWithdrawalDelaySec, uint256 clearDelaySec) public onlyOwner {
+  function isBonusPeriod() public view returns(bool) {
+    return now >= startTime && now <= bonusEndTime;
+  }
+
+  function startSale(uint256 _startTime, uint256 _rate, uint256 duration,
+    uint256 bonusDuration, uint256 _bonusPercentage, uint256 _bonusDecreaseRate,
+    uint256 userWithdrawalDelaySec, uint256 clearDelaySec) public onlyOwner {
     require(endTime == 0);
     require(_startTime > 0);
     require(_rate > 0);
     require(duration > 0);
 
     rate = _rate;
+    bonusPercentage = _bonusPercentage;
+    bonusDecreaseRate = _bonusDecreaseRate;
     startTime = _startTime;
+    bonusEndTime = startTime.add(bonusDuration);
     endTime = startTime.add(duration);
     userWithdrawalStartTime = endTime.add(userWithdrawalDelaySec);
     clearStartTime = endTime.add(clearDelaySec);
@@ -115,12 +126,13 @@ contract LTOTokenSale is Ownable {
     proportion = totalSaleAmount.mul(1 ether).div(totalWannaBuyAmount);
   }
 
-  function getSaleInfo(address purchaser) public view returns (uint256, uint256, uint256) {
+  function getSaleInfo(address purchaser) public view returns (uint256, uint256, uint256, uint256) {
     PurchaserInfo storage pi = purchaserMapping[purchaser];
     uint256 sendEther = pi.amount;
+    uint256 bonusEther = pi.bonus;
     uint256 usedEther = sendEther.mul(proportion).div(1 ether);
-    uint256 getToken = usedEther.mul(rate).div(10**10);
-    return (sendEther, usedEther, getToken);
+    uint256 getToken = sendEther.add(bonusEther).mul(proportion).div(1 ether).mul(rate).div(10**10);
+    return (sendEther, usedEther, bonusEther, getToken);
   }
 
   function () payable public {
@@ -129,6 +141,7 @@ contract LTOTokenSale is Ownable {
 
   function buy() payable public onlyOpenTime {
     require(msg.value >= 0.1 ether);
+
     uint256 amount = msg.value;
     PurchaserInfo storage pi = purchaserMapping[msg.sender];
     if (!pi.recorded) {
@@ -137,6 +150,12 @@ contract LTOTokenSale is Ownable {
     }
     pi.amount = pi.amount.add(amount);
     globalAmount = globalAmount.add(amount);
+    if (isBonusPeriod()) {
+      uint256 bonus = amount.div(10000).mul(bonusPercentage);
+      pi.bonus = pi.bonus.add(bonus);
+      amount = amount.add(bonus);
+    }
+
     totalWannaBuyAmount = totalWannaBuyAmount.add(amount.mul(rate).div(10**10));
     _calcProportion();
   }
@@ -149,7 +168,7 @@ contract LTOTokenSale is Ownable {
     }
     pi.withdrew = true;
     withdrawn = withdrawn.add(1);
-    (uint256 sendEther, uint256 usedEther, uint256 getToken) = getSaleInfo(purchaser);
+    (uint256 sendEther, uint256 usedEther, uint256 bonusEther, uint256 getToken) = getSaleInfo(purchaser);
     if (usedEther > 0 && getToken > 0) {
       receiverAddr.transfer(usedEther);
       token.transfer(purchaser, getToken);

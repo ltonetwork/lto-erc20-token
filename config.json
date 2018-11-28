@@ -11,7 +11,10 @@
         "receiverAddr" : null ,
         "totalSaleAmount" : 50000000,
         "rate": 400,
-        "duration": 86400,
+        "duration": 604800,
+        "bonusDuration": 86400,
+        "bonusPercentage": 700,
+        "bonusDecreaseRate": 5,
         "startTime" : 1542672000,
         "userWithdrawalDelaySec" : 86400,
         "clearDelaySec" : 1296000

@@ -4,8 +4,11 @@ var config = require("../config.json");
 var tokenConfig = config.token;
 var tokenSaleConfig = config.tokenSale;
 
-function convertDecimals(number) {
-  return web3.toBigNumber(10).pow(tokenConfig.decimals).mul(number);
+function convertDecimals(number, decimals) {
+  if (!decimals) {
+    decimals = tokenConfig.decimals;
+  }
+  return web3.toBigNumber(10).pow(decimals).mul(number);
 }
 
 function getReceiverAddr(defaultAddr) {
@@ -30,6 +33,9 @@ module.exports = function(deployer, network, accounts) {
   var tokenInstance = null;
   var toknSaleInstance = null;
 
+  var bonusPercentage = convertDecimals(tokenSaleConfig.bonusPercentage, 18);
+  var bonusDecreaseRate = convertDecimals(tokenSaleConfig.bonusDecreaseRate, 18);
+
   return deployer.deploy(Token,
     totalSupply,
     tokenConfig.bridgeAddr,
@@ -49,7 +55,7 @@ module.exports = function(deployer, network, accounts) {
       return tokenInstance.transfer(toknSaleInstance.address, totalSaleAmount);
     })
     .then(tx => {
-      return toknSaleInstance.startSale(startTime, tokenSaleConfig.rate, tokenSaleConfig.duration, userWithdrawalDelaySec, clearDelaySec);
+      return toknSaleInstance.startSale(startTime, tokenSaleConfig.rate, tokenSaleConfig.duration, tokenSaleConfig.bonusDuration, bonusPercentage, bonusDecreaseRate, userWithdrawalDelaySec, clearDelaySec);
     })
     .then(tx => {
       if(defaultAddr != receiverAddr) {

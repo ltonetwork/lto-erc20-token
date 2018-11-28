@@ -84,12 +84,16 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3]) => {
       const startTime = new BigNumber(getUnixTime() + 5);
       const userWithdrawalDelaySec = new BigNumber(2);
       const clearDelaySec = new BigNumber(5);
-      const duration = 5;
+      const bonusDuration = 5;
+      const duration = 10;
+
+      const bonusPercentage = 700;
+      const bonusDecreaseRate = 5;
 
       before(async () => {
         this.tokenSale = await LTOTokenSale.new(owner, this.token.address, totalSaleAmount);
         await this.token.transfer(this.tokenSale.address, totalSaleAmount);
-        await this.tokenSale.startSale(startTime, rate, duration, userWithdrawalDelaySec, clearDelaySec);
+        await this.tokenSale.startSale(startTime, rate, duration, bonusDuration, bonusPercentage, bonusDecreaseRate, userWithdrawalDelaySec, clearDelaySec);
       });
 
       describe('when the token sale start date is set', () => {
@@ -114,6 +118,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3]) => {
           const times = await Promise.all(promises);
 
           endTime = new BigNumber(startTime.toNumber());
+          const bonusEndTime = endTime.plus(duration);
           endTime = endTime.plus(duration);
 
           assert(times[0].equals(endTime));
@@ -165,13 +170,12 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3]) => {
             });
             let receipt = web3.eth.getTransactionReceipt(hash);
             assert.equal(receipt.status, '0x1', "The Transaction will success after startTime");
+            assert((await this.tokenSale.totalWannaBuyAmount()).equals(convertDecimals(rate).add(convertDecimals(rate).div(100).mul(7))));
 
-            assert((await this.tokenSale.totalWannaBuyAmount()).equals(convertDecimals(rate)));
-
-            let [sendEther, usedEther, getToken] = await this.tokenSale.getSaleInfo(user1);
+            let [sendEther, usedEther, bonusEther, getToken] = await this.tokenSale.getSaleInfo(user1);
             assert(sendEther.equals(convertDecimals(1, true)));
             assert(usedEther.equals(convertDecimals(1, true)));
-            assert(getToken.equals(convertDecimals(rate)));
+            assert(getToken.equals(convertDecimals(rate).add(convertDecimals(rate).div(100).mul(7))));
 
             hash = await ethSendTransaction({
               from: user2,
@@ -182,7 +186,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3]) => {
             receipt = web3.eth.getTransactionReceipt(hash);
             assert.equal(receipt.status, '0x1', "The Transaction will success after startTime");
 
-            assert((await this.tokenSale.totalWannaBuyAmount()).equals(convertDecimals(2 * rate)));
+            assert((await this.tokenSale.totalWannaBuyAmount()).equals(convertDecimals(2 * rate).add(convertDecimals(2 * rate).div(100).mul(7))));
 
             hash = await ethSendTransaction({
               from: user3,
@@ -193,9 +197,9 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3]) => {
             receipt = web3.eth.getTransactionReceipt(hash);
             assert.equal(receipt.status, '0x1', "The Transaction will success after startTime");
 
-            assert((await this.tokenSale.totalWannaBuyAmount()).equals(convertDecimals(3 * rate)));
+            assert((await this.tokenSale.totalWannaBuyAmount()).equals(convertDecimals(3 * rate).add(convertDecimals(3 * rate).div(100).mul(7))));
 
-            [sendEther, usedEther, getToken] = await this.tokenSale.getSaleInfo(user1);
+            [sendEther, usedEther, bonusEther, getToken] = await this.tokenSale.getSaleInfo(user1);
             assert(sendEther.equals(convertDecimals(1, true)));
             assert(getToken.equals(totalSaleAmount.div(3).round(0)));
 
