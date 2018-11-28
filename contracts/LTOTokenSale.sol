@@ -29,6 +29,7 @@ contract LTOTokenSale is Ownable {
   uint256 public proportion = 1 ether;
   uint256 public globalAmount;
   uint256 public rate;
+  uint256 public nrOfTransactions = 0;
 
   struct PurchaserInfo {
     bool withdrew;
@@ -151,13 +152,15 @@ contract LTOTokenSale is Ownable {
     pi.amount = pi.amount.add(amount);
     globalAmount = globalAmount.add(amount);
     if (isBonusPeriod()) {
-      uint256 bonus = amount.div(10000).mul(bonusPercentage);
+      uint256 percentage = bonusPercentage.sub(bonusDecreaseRate.mul(nrOfTransactions));
+      uint256 bonus = amount.div(10000).mul(percentage);
       pi.bonus = pi.bonus.add(bonus);
       amount = amount.add(bonus);
     }
 
     totalWannaBuyAmount = totalWannaBuyAmount.add(amount.mul(rate).div(10**10));
     _calcProportion();
+    nrOfTransactions = nrOfTransactions.add(1);
   }
 
   function _withdrawal(address purchaser) internal {
