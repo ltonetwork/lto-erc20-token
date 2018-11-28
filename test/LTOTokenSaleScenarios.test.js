@@ -4,7 +4,6 @@ const config = require("../config.json");
 const tokenConfig = config.token;
 const tokenSaleConfig = config.tokenSale;
 const { ethSendTransaction } = require('./helpers/web3');
-const constants = require('./helpers/constants');
 
 const sleep = require('sleep-promise');
 const BigNumber = web3.BigNumber;
@@ -68,50 +67,6 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4]) => {
 
     beforeEach(async () => {
       await this.tokenSale.startSale(startTime, rate, duration, bonusDuration, bonusPercentage, bonusDecreaseRate, userWithdrawalDelaySec, clearDelaySec);
-    });
-
-    describe('when total sale is less then the supply', () => {
-      it('should result in every buyer receiving the rate', async () => {
-        const time = await this.tokenSale.startTime();
-        //wating for starting
-        await sleepSec(time.plus(2).sub(getUnixTime()).toNumber());
-
-        let hash = await ethSendTransaction({
-          from: user1,
-          to: this.tokenSale.address,
-          value: convertDecimals(1, true),
-          gas: gas
-        });
-        let receipt = web3.eth.getTransactionReceipt(hash);
-        assert.equal(receipt.status, '0x1', "The Transaction will success after startTime");
-        assert((await this.tokenSale.totalWannaBuyAmount()).equals(convertDecimals(rate)));
-
-        let [sendEther, usedEther, bonusEther, getToken] = await this.tokenSale.getSaleInfo(user1);
-        assert(sendEther.equals(convertDecimals(1, true)));
-        assert(usedEther.equals(convertDecimals(1, true)));
-        assert(getToken.equals(convertDecimals(rate)));
-
-        hash = await ethSendTransaction({
-          from: user2,
-          to: this.tokenSale.address,
-          value: convertDecimals(1, true),
-          gas: gas
-        });
-        receipt = web3.eth.getTransactionReceipt(hash);
-        assert.equal(receipt.status, '0x1', "The Transaction will success after startTime");
-
-        assert((await this.tokenSale.totalWannaBuyAmount()).equals(convertDecimals(2 * rate)));
-
-        [sendEther, usedEther, bonusEther, getToken] = await this.tokenSale.getSaleInfo(user1);
-        assert(sendEther.equals(convertDecimals(1, true)));
-        assert(getToken.equals((convertDecimals(rate))));
-
-        const count = await this.tokenSale.getPurchaserCount();
-        assert.equal(count.toNumber(), 2);
-
-        const purchaser = await this.tokenSale.purchaserList(1);
-        assert.equal(purchaser, user2);
-      });
     });
 
     describe('when total sale is more then the supply', () => {
@@ -340,12 +295,6 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4]) => {
         totalBought = totalBought.add(bought);
 
         assert((await this.tokenSale.totalWannaBuyAmount()).equals(totalBought));
-
-        const count = await this.tokenSale.getPurchaserCount();
-        assert.equal(count.toNumber(), 2);
-
-        const purchaser = await this.tokenSale.purchaserList(1);
-        assert.equal(purchaser, user2);
       });
     });
 
@@ -362,8 +311,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4]) => {
           value: convertDecimals(1, true),
           gas: gas
         });
-        let receipt = web3.eth.getTransactionReceipt(hash);
-        assert.equal(receipt.status, '0x1', "The Transaction will success after startTime");
+
         let bought = convertDecimals(rate).add(convertDecimals(rate).div(10000).mul(bonus));
         const boughtUser1 = bought;
 
@@ -382,8 +330,6 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4]) => {
           value: convertDecimals(1, true),
           gas: gas
         });
-        receipt = web3.eth.getTransactionReceipt(hash);
-        assert.equal(receipt.status, '0x1', "The Transaction will success after startTime");
 
         bought = convertDecimals(rate).add(convertDecimals(rate).div(10000).mul(bonus));
 
@@ -398,8 +344,6 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4]) => {
           value: convertDecimals(1, true),
           gas: gas
         });
-        receipt = web3.eth.getTransactionReceipt(hash);
-        assert.equal(receipt.status, '0x1', "The Transaction will success after startTime");
 
         bought = convertDecimals(rate).add(convertDecimals(rate).div(10000).mul(bonus));
 
@@ -414,8 +358,6 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4]) => {
           value: convertDecimals(1, true),
           gas: gas
         });
-        receipt = web3.eth.getTransactionReceipt(hash);
-        assert.equal(receipt.status, '0x1', "The Transaction will success after startTime");
 
         bought = convertDecimals(rate).add(convertDecimals(rate).div(10000).mul(bonus));
 
