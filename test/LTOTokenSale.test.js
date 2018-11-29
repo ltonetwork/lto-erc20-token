@@ -5,8 +5,8 @@ const tokenConfig = config.token;
 const tokenSaleConfig = config.tokenSale;
 const { ethSendTransaction } = require('./helpers/web3');
 const constants = require('./helpers/constants');
-
-const sleep = require('sleep-promise');
+const { increaseTimeTo } = require('zeppelin-solidity/test/helpers/increaseTime.js');
+const { latestTime } = require('zeppelin-solidity/test/helpers/latestTime.js');
 const BigNumber = web3.BigNumber;
 const gas = 2000000;
 
@@ -31,17 +31,6 @@ function getReceiverAddr(defaultAddr) {
     return tokenSaleConfig.receiverAddr;
   }
   return defaultAddr;
-}
-
-function getUnixTime(){
-  return Math.round(new Date().getTime()/1000);
-}
-
-function sleepSec(sec){
-  if(sec < 0){
-    sec = 0;
-  }
-  return sleep(sec * 1000); // sleep use ms
 }
 
 contract('LTOTokenSale', ([owner, bridge, user1, user2, user3]) => {
@@ -81,7 +70,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3]) => {
     });
 
     context('once deployed (sold out token sale)', async () => {
-      const startTime = new BigNumber(getUnixTime() + 5);
+      let startTime;  // for some weird reason using async statements here breaks `before` setup
       const userWithdrawalDelaySec = new BigNumber(2);
       const clearDelaySec = new BigNumber(5);
       const bonusDuration = 0;
@@ -91,6 +80,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3]) => {
       const bonusDecreaseRate = 0;
 
       before(async () => {
+        startTime = (await latestTime()) + 5;
         this.tokenSale = await LTOTokenSale.new(owner, this.token.address, totalSaleAmount);
         await this.token.transfer(this.tokenSale.address, totalSaleAmount);
         await this.tokenSale.startSale(startTime, rate, duration, bonusDuration, bonusPercentage, bonusDecreaseRate, userWithdrawalDelaySec, clearDelaySec);
@@ -117,7 +107,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3]) => {
           promises.push(this.tokenSale.clearStartTime());
           const times = await Promise.all(promises);
 
-          endTime = new BigNumber(startTime.toNumber());
+          endTime = new BigNumber(startTime);
           const bonusEndTime = endTime.plus(duration);
           endTime = endTime.plus(duration);
 
@@ -148,7 +138,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3]) => {
 
         it('should not accept payments', async () => {
           const time = await this.tokenSale.startTime();
-          assert(time > getUnixTime(), "The Start Time will after now for this Test");
+          assert(time > (await latestTime()), "The Start Time will after now for this Test");
           const transaction = {from: owner, to: this.tokenSale.address, value: convertDecimals(1, true)};
 
           const hash = await ethSendTransaction(transaction);
@@ -160,7 +150,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3]) => {
           it('should accept payments', async () => {
             const time = await this.tokenSale.startTime();
             //wating for starting
-            await sleepSec(time.plus(2).sub(getUnixTime()).toNumber());
+            await increaseTimeTo(time.plus(2));
 
             let hash = await ethSendTransaction({
               from: user1,
@@ -233,7 +223,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3]) => {
               let balance = await this.token.balanceOf(user1);
               assert(balance.equals(0));
               //wating for End
-              await sleepSec(time.plus(2).sub(getUnixTime()).toNumber());
+              await increaseTimeTo(time.plus(2));
 
               try {
                 const tx = await this.tokenSale.withdrawalFor(0, 1);
@@ -269,7 +259,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3]) => {
 
               it('should be possible for a user the withdraw', async () => {
                 const time = await this.tokenSale.userWithdrawalStartTime();
-                await sleepSec(time.plus(2).sub(getUnixTime()).toNumber());
+                await increaseTimeTo(time.plus(2));
 
                 const tx = await this.tokenSale.withdrawal({from: user2});
 
@@ -291,7 +281,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3]) => {
                 it('should be possible to clear the token', async () => {
                   const time = await this.tokenSale.clearStartTime();
                   //wating for clearStart
-                  await sleepSec(time.plus(2).sub(getUnixTime()).toNumber());
+                  await increaseTimeTo(time.plus(2));
 
                   const tx = await this.tokenSale.clear(0, 0);
                   assert.equal(tx.receipt.status, '0x1', "Will Success");
