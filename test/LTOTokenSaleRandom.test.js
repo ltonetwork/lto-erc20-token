@@ -6,8 +6,8 @@ const tokenSaleConfig = config.tokenSale;
 const { ethSendTransaction } = require('./helpers/web3');
 const Mock = require('mockjs');
 const Random = Mock.Random;
-
-const sleep = require('sleep-promise');
+const { increaseTimeTo } = require('zeppelin-solidity/test/helpers/increaseTime.js');
+const { latestTime } = require('zeppelin-solidity/test/helpers/latestTime.js');
 const BigNumber = web3.BigNumber;
 const gas = 2000000;
 const sentData = [];
@@ -34,18 +34,6 @@ function getReceiverAddr(defaultAddr) {
   }
   return defaultAddr;
 }
-
-function getUnixTime(){
-  return Math.round(new Date().getTime()/1000);
-}
-
-function sleepSec(sec){
-  if(sec < 0){
-    sec = 0;
-  }
-  return sleep(sec * 1000); // sleep use ms
-}
-
 
 async function randomSent(accounts, address, bonus) {
 
@@ -81,7 +69,6 @@ contract('LTOTokenSale', ([owner, bridge, ...accounts]) => {
   const rate = 400;
   const tokenSupply = convertDecimals(1000000);
   const totalSaleAmount = convertDecimals(100000);
-  const startTime = new BigNumber(getUnixTime() + 2);
   const userWithdrawalDelaySec = new BigNumber(2);
   const clearDelaySec = new BigNumber(5);
   const bonusDuration = 10;
@@ -91,6 +78,7 @@ contract('LTOTokenSale', ([owner, bridge, ...accounts]) => {
   const bonusDecreaseRate = 5;
 
   before(async () => {
+    const startTime = (await latestTime()) + 2;
     this.token = await LTOToken.new(tokenSupply, bridge, 50);
     this.tokenSale = await LTOTokenSale.new(owner, this.token.address, totalSaleAmount);
     await this.token.transfer(this.tokenSale.address, totalSaleAmount);
@@ -102,7 +90,7 @@ contract('LTOTokenSale', ([owner, bridge, ...accounts]) => {
     it('should randomly send a random amounts of ether during the bonus period', async () => {
       let time = await this.tokenSale.startTime();
       //wating for starting
-      await sleepSec(time.plus(2).sub(getUnixTime()).toNumber());
+      await increaseTimeTo(time.plus(2));
 
       let totalWannaBuy = await this.tokenSale.totalWannaBuyAmount();
       assert(totalWannaBuy.equals(0));
@@ -119,7 +107,7 @@ contract('LTOTokenSale', ([owner, bridge, ...accounts]) => {
       totalWannaBuy = await this.tokenSale.totalWannaBuyAmount();
 
       time = await this.tokenSale.bonusEndTime();
-      await sleepSec(time.plus(2).sub(getUnixTime()).toNumber());
+      await increaseTimeTo(time.plus(2));
 
       const times2 = Random.integer(5, 10);
       for(let i = 0; i < times2; i++) {
