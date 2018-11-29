@@ -44,25 +44,7 @@ function sleepSec(sec){
   return sleep(sec * 1000); // sleep use ms
 }
 
-const saveState = async () => {
-  return await web3.currentProvider.send({
-    jsonrpc: "2.0",
-    method: "evm_snapshot",
-    id: 0
-  })
-};
-
-const revertState = async (id) => {
-  await web3.currentProvider.send({
-    jsonrpc: "2.0",
-    method: "evm_revert",
-    params: [id],
-    id: 0
-  })
-};
-
 contract('LTOTokenSale', ([owner, bridge, user1, user2, user3]) => {
-  let id;
   const rate = 400;
   const tokenSupply = convertDecimals(10000);
   const totalSaleAmount = convertDecimals(1000);
@@ -79,12 +61,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3]) => {
 
   contract('with token', () => {
     before(async () => {
-      id = await saveState();
       this.token = await LTOToken.new(tokenSupply, bridge, 50);
-    });
-
-    after(async() => {
-      await revertState(id)
     });
 
     it('requires a token supply', () => {
