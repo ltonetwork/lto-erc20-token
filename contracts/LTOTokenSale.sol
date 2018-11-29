@@ -150,7 +150,7 @@ contract LTOTokenSale is Ownable {
     }
     pi.amount = pi.amount.add(amount);
     globalAmount = globalAmount.add(amount);
-    if (isBonusPeriod()) {
+    if (isBonusPeriod() && bonusDecreaseRate.mul(nrOfTransactions) <= bonusPercentage) {
       uint256 percentage = bonusPercentage.sub(bonusDecreaseRate.mul(nrOfTransactions));
       uint256 bonus = amount.div(10000).mul(percentage);
       pi.bonus = pi.bonus.add(bonus);

@@ -13,7 +13,7 @@
         "rate": 400,
         "duration": 604800,
         "bonusDuration": 86400,
-        "bonusPercentage": 700,
+        "bonusPercentage": 500,
         "bonusDecreaseRate": 5,
         "startTime" : 1542672000,
         "userWithdrawalDelaySec" : 86400,
