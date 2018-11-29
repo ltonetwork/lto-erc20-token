@@ -173,7 +173,7 @@ contract LTOTokenSale is Ownable {
     (uint256 sendEther, uint256 usedEther, uint256 getToken) = getSaleInfo(purchaser);
     if (usedEther > 0 && getToken > 0) {
       receiverAddr.transfer(usedEther);
-      token.transfer(purchaser, getToken);
+      require(token.transfer(purchaser, getToken));
       if (sendEther.sub(usedEther) > 0) {
         purchaser.transfer(sendEther.sub(usedEther));
       }
