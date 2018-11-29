@@ -43,25 +43,7 @@ function sleepSec(sec){
   return sleep(sec * 1000); // sleep use ms
 }
 
-const saveState = async () => {
-  return await web3.currentProvider.send({
-    jsonrpc: "2.0",
-    method: "evm_snapshot",
-    id: 0
-  })
-};
-
-const revertState = async (id) => {
-  await web3.currentProvider.send({
-    jsonrpc: "2.0",
-    method: "evm_revert",
-    params: [id],
-    id: 0
-  })
-};
-
 contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4]) => {
-  let id;
   let startTime;
   const rate = 400;
   const tokenSupply = convertDecimals(10000);
@@ -72,15 +54,10 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4]) => {
   const duration = 10;
 
   beforeEach(async () => {
-    id = await saveState();
     startTime = new BigNumber(getUnixTime() + 5);
     this.token = await LTOToken.new(tokenSupply, bridge, 50);
     this.tokenSale = await LTOTokenSale.new(owner, this.token.address, totalSaleAmount);
     await this.token.transfer(this.tokenSale.address, totalSaleAmount);
-  });
-
-  afterEach(async() => {
-    await revertState(id)
   });
 
   describe('without bonus period', () => {

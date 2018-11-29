@@ -22,7 +22,7 @@
   },
   "scripts": {
     "only-test": "truffle test",
-    "test": "scripts/test.sh --network test",
+    "test": "scripts/test.sh",
     "migrate": "rm -rf build && truffle migrate"
   },
   "repository": {
