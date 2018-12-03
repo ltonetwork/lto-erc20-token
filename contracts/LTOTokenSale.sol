@@ -13,6 +13,11 @@ contract LTOTokenSale is Ownable {
 
   using SafeMath for uint256;
 
+  uint256 constant minimumAmount = 0.1 ether;
+  uint256 constant ethDecimals = 1 ether;
+  uint256 constant ltoEthDiffDecimals = 10**10;
+  uint256 constant bonusRateDivision = 10000;
+
   ERC20 public token;
   address public receiverAddr;
   uint256 public totalSaleAmount;
@@ -129,15 +134,15 @@ contract LTOTokenSale is Ownable {
       proportion = 1 ether;
       return;
     }
-    proportion = totalSaleAmount.mul(1 ether).div(totalWannaBuyAmount);
+    proportion = totalSaleAmount.mul(ethDecimals).div(totalWannaBuyAmount);
   }
 
   function getSaleInfo(address purchaser) internal view returns (Purchase p) {
     PurchaserInfo storage pi = purchaserMapping[purchaser];
     return Purchase(
       pi.received,
-      pi.received.mul(proportion).div(1 ether),
-      pi.accounted.mul(proportion).div(1 ether).mul(rate).div(10**10)
+      pi.received.mul(proportion).div(ethDecimals),
+      pi.accounted.mul(proportion).div(ethDecimals).mul(rate).div(ltoEthDiffDecimals)
     );
   }
 
@@ -151,7 +156,7 @@ contract LTOTokenSale is Ownable {
   }
 
   function buy() payable public onlyOpenTime {
-    require(msg.value >= 0.1 ether);
+    require(msg.value >= minimumAmount);
 
     uint256 amount = msg.value;
     PurchaserInfo storage pi = purchaserMapping[msg.sender];
@@ -163,11 +168,11 @@ contract LTOTokenSale is Ownable {
     globalAmount = globalAmount.add(amount);
     if (isBonusPeriod() && bonusDecreaseRate.mul(nrOfTransactions) <= bonusPercentage) {
       uint256 percentage = bonusPercentage.sub(bonusDecreaseRate.mul(nrOfTransactions));
-      uint256 bonus = amount.div(10000).mul(percentage);
+      uint256 bonus = amount.div(bonusRateDivision).mul(percentage);
       amount = amount.add(bonus);
     }
     pi.accounted = pi.accounted.add(amount);
-    totalWannaBuyAmount = totalWannaBuyAmount.add(amount.mul(rate).div(10**10));
+    totalWannaBuyAmount = totalWannaBuyAmount.add(amount.mul(rate).div(ltoEthDiffDecimals));
     _calcProportion();
     nrOfTransactions = nrOfTransactions.add(1);
   }
