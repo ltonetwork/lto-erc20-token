@@ -3,7 +3,6 @@ const config = require('../config.json');
 const tokenConfig = config.token;
 const constants = require('./helpers/constants');
 
-
 contract('LTOToken', ([owner, bridge, otherAccount]) => {
 
   describe('when creating a token', () => {
