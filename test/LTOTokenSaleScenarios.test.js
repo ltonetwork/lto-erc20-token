@@ -4,8 +4,8 @@ const config = require("../config.json");
 const tokenConfig = config.token;
 const tokenSaleConfig = config.tokenSale;
 const { ethSendTransaction } = require('./helpers/web3');
-
-const sleep = require('sleep-promise');
+const { increaseTimeTo } = require('zeppelin-solidity/test/helpers/increaseTime.js');
+const { latestTime } = require('zeppelin-solidity/test/helpers/latestTime.js');
 const BigNumber = web3.BigNumber;
 const gas = 2000000;
 
@@ -32,17 +32,6 @@ function getReceiverAddr(defaultAddr) {
   return defaultAddr;
 }
 
-function getUnixTime(){
-  return Math.round(new Date().getTime()/1000);
-}
-
-function sleepSec(sec){
-  if(sec < 0){
-    sec = 0;
-  }
-  return sleep(sec * 1000); // sleep use ms
-}
-
 contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4]) => {
   let startTime;
   const rate = 400;
@@ -54,7 +43,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4]) => {
   const duration = 10;
 
   beforeEach(async () => {
-    startTime = new BigNumber(getUnixTime() + 5);
+    startTime = (await latestTime()) + 5;
     this.token = await LTOToken.new(tokenSupply, bridge, 50);
     this.tokenSale = await LTOTokenSale.new(owner, this.token.address, totalSaleAmount);
     await this.token.transfer(this.tokenSale.address, totalSaleAmount);
@@ -73,7 +62,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4]) => {
       it('should result in every buyer receiving a fraction of the rate', async () => {
         const time = await this.tokenSale.startTime();
         //wating for starting
-        await sleepSec(time.plus(2).sub(getUnixTime()).toNumber());
+        await increaseTimeTo(time.plus(2))
 
         await ethSendTransaction({
           from: user1,
@@ -133,7 +122,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4]) => {
         let bonus = bonusPercentage;
         const time = await this.tokenSale.startTime();
         //wating for starting
-        await sleepSec(time.plus(2).sub(getUnixTime()).toNumber());
+        await increaseTimeTo(time.plus(2));
 
         await ethSendTransaction({
           from: user1,
@@ -180,7 +169,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4]) => {
       it('should result in every buyer receiving a fraction of the rate', async () => {
         const time = await this.tokenSale.startTime();
         //wating for starting
-        await sleepSec(time.plus(2).sub(getUnixTime()).toNumber());
+        await increaseTimeTo(time.plus(2));
 
         await ethSendTransaction({
           from: user1,
@@ -240,7 +229,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4]) => {
         let bonus = bonusPercentage;
         const time = await this.tokenSale.startTime();
         //wating for starting
-        await sleepSec(time.plus(2).sub(getUnixTime()).toNumber());
+        await increaseTimeTo(time.plus(2));
 
         await ethSendTransaction({
           from: user1,
@@ -283,7 +272,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4]) => {
         let bonus = bonusPercentage;
         const time = await this.tokenSale.startTime();
         //wating for starting
-        await sleepSec(time.plus(2).sub(getUnixTime()).toNumber());
+        await increaseTimeTo(time.plus(2));
 
         await ethSendTransaction({
           from: user1,
