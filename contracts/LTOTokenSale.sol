@@ -2,7 +2,7 @@ pragma solidity ^0.4.24;
 
 import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
-import 'zeppelin-solidity/contracts/token/ERC20/SafeERC20.sol';
+import 'zeppelin-solidity/contracts/token/ERC20/ERC20.sol';
 
 
 /**
@@ -12,7 +12,6 @@ import 'zeppelin-solidity/contracts/token/ERC20/SafeERC20.sol';
 contract LTOTokenSale is Ownable {
 
   using SafeMath for uint256;
-  using SafeERC20 for ERC20;
 
   ERC20 public token;
   address public receiverAddr;
@@ -173,7 +172,7 @@ contract LTOTokenSale is Ownable {
     (uint256 sendEther, uint256 usedEther, uint256 getToken) = getSaleInfo(purchaser);
     if (usedEther > 0 && getToken > 0) {
       receiverAddr.transfer(usedEther);
-      token.transfer(purchaser, getToken);
+      require(token.transfer(purchaser, getToken));
       if (sendEther.sub(usedEther) > 0) {
         purchaser.transfer(sendEther.sub(usedEther));
       }
