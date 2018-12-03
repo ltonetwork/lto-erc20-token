@@ -162,7 +162,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3]) => {
             assert.equal(receipt.status, '0x1', "The Transaction will success after startTime");
             assert((await this.tokenSale.totalWannaBuyAmount()).equals(convertDecimals(rate)));
 
-            let [sendEther, usedEther, getToken] = await this.tokenSale.getSaleInfo(user1);
+            let [sendEther, usedEther, getToken] = await this.tokenSale.getPublicSaleInfo(user1);
             assert(sendEther.equals(convertDecimals(1, true)));
             assert(usedEther.equals(convertDecimals(1, true)));
             assert(getToken.equals(convertDecimals(rate)));
@@ -189,7 +189,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3]) => {
 
             assert((await this.tokenSale.totalWannaBuyAmount()).equals(convertDecimals(3 * rate)));
 
-            [sendEther, usedEther, getToken] = await this.tokenSale.getSaleInfo(user1);
+            [sendEther, usedEther, getToken] = await this.tokenSale.getPublicSaleInfo(user1);
             assert(sendEther.equals(convertDecimals(1, true)));
             assert(getToken.equals(totalSaleAmount.div(3).round(0)));
 

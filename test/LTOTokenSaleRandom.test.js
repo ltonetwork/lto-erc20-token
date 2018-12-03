@@ -123,7 +123,7 @@ contract('LTOTokenSale', ([owner, bridge, ...accounts]) => {
       for(var account in sentData) {
         const totalTokens = convertDecimals((sentData[account] * rate).toFixed(8));
         const tokens = proportion.mul(totalTokens).round(0);
-        [sendEther, usedEther, getToken] = await this.tokenSale.getSaleInfo(account);
+        [sendEther, usedEther, getToken] = await this.tokenSale.getPublicSaleInfo(account);
         assert(tokens.equals(getToken));
       }
     })

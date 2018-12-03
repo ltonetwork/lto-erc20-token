@@ -33,8 +33,14 @@ contract LTOTokenSale is Ownable {
   struct PurchaserInfo {
     bool withdrew;
     bool recorded;
-    uint256 amount;
-    uint256 bonus;
+    uint256 received;
+    uint256 accounted;
+  }
+
+  struct Purchase {
+    uint256 received;
+    uint256 used;
+    uint256 tokens;
   }
   mapping(address => PurchaserInfo) public purchaserMapping;
   address[] public purchaserList;
@@ -126,12 +132,18 @@ contract LTOTokenSale is Ownable {
     proportion = totalSaleAmount.mul(1 ether).div(totalWannaBuyAmount);
   }
 
-  function getSaleInfo(address purchaser) public view returns (uint256, uint256, uint256) {
+  function getSaleInfo(address purchaser) internal view returns (Purchase p) {
     PurchaserInfo storage pi = purchaserMapping[purchaser];
-    uint256 sendEther = pi.amount;
-    uint256 usedEther = sendEther.mul(proportion).div(1 ether);
-    uint256 getToken = sendEther.add(pi.bonus).mul(proportion).div(1 ether).mul(rate).div(10**10);
-    return (sendEther, usedEther, getToken);
+    return Purchase(
+      pi.received,
+      pi.received.mul(proportion).div(1 ether),
+      pi.accounted.mul(proportion).div(1 ether).mul(rate).div(10**10)
+    );
+  }
+
+  function getPublicSaleInfo(address purchaser) public view returns (uint256, uint256, uint256) {
+    Purchase memory purchase = getSaleInfo(purchaser);
+    return (purchase.received, purchase.used, purchase.tokens);
   }
 
   function () payable public {
@@ -147,15 +159,14 @@ contract LTOTokenSale is Ownable {
       pi.recorded = true;
       purchaserList.push(msg.sender);
     }
-    pi.amount = pi.amount.add(amount);
+    pi.received = pi.received.add(amount);
     globalAmount = globalAmount.add(amount);
     if (isBonusPeriod() && bonusDecreaseRate.mul(nrOfTransactions) <= bonusPercentage) {
       uint256 percentage = bonusPercentage.sub(bonusDecreaseRate.mul(nrOfTransactions));
       uint256 bonus = amount.div(10000).mul(percentage);
-      pi.bonus = pi.bonus.add(bonus);
       amount = amount.add(bonus);
     }
-
+    pi.accounted = pi.accounted.add(amount);
     totalWannaBuyAmount = totalWannaBuyAmount.add(amount.mul(rate).div(10**10));
     _calcProportion();
     nrOfTransactions = nrOfTransactions.add(1);
@@ -169,15 +180,15 @@ contract LTOTokenSale is Ownable {
     }
     pi.withdrew = true;
     withdrawn = withdrawn.add(1);
-    (uint256 sendEther, uint256 usedEther, uint256 getToken) = getSaleInfo(purchaser);
-    if (usedEther > 0 && getToken > 0) {
-      receiverAddr.transfer(usedEther);
-      require(token.transfer(purchaser, getToken));
-      if (sendEther.sub(usedEther) > 0) {
-        purchaser.transfer(sendEther.sub(usedEther));
+    Purchase memory purchase = getSaleInfo(purchaser);
+    if (purchase.used > 0 && purchase.tokens > 0) {
+      receiverAddr.transfer(purchase.used);
+      require(token.transfer(purchaser, purchase.tokens));
+      if (purchase.received.sub(purchase.used) > 0) {
+        purchaser.transfer(purchase.received.sub(purchase.used));
       }
     } else {
-      purchaser.transfer(sendEther);
+      purchaser.transfer(purchase.received);
     }
     return;
   }
