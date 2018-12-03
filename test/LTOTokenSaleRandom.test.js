@@ -11,6 +11,7 @@ const { latestTime } = require('zeppelin-solidity/test/helpers/latestTime.js');
 const BigNumber = web3.BigNumber;
 const gas = 2000000;
 const sentData = [];
+const MAX_RANDOM_VALUE = 1000;
 
 function convertDecimals(number, ether) {
   const etherDecimals = 18;
@@ -39,11 +40,10 @@ async function randomSent(accounts, address, bonus) {
 
   const account = accounts[Random.integer(0,accounts.length - 1)];
   let maxValue = web3.fromWei(web3.eth.getBalance(account)).div(2);
-  if (maxValue > 100) {
-    maxValue = Random.integer(3, 100);
+  if (maxValue > MAX_RANDOM_VALUE) {
+    maxValue = MAX_RANDOM_VALUE;
   }
   const minValue = 3;
-
 
   if(maxValue < minValue){
     return;
@@ -59,27 +59,29 @@ async function randomSent(accounts, address, bonus) {
   value = convertDecimals(value, true);
 
   let hash = await ethSendTransaction({from: account, to: address, value: value, gas: gas});
-  // let receipt = web3.eth.getTransactionReceipt(hash);
-  // assert.equal(receipt.status, '0x1', "The Transactiogit n will success after startTime");
+  let receipt = web3.eth.getTransactionReceipt(hash);
+  assert.equal(receipt.status, '0x1', "The Transaction will success after startTime");
   return total;
 }
 
 contract('LTOTokenSale', ([owner, bridge, ...accounts]) => {
   let id;
-  const rate = 400;
-  const tokenSupply = convertDecimals(1000000);
-  const totalSaleAmount = convertDecimals(100000);
-  const userWithdrawalDelaySec = new BigNumber(2);
-  const clearDelaySec = new BigNumber(5);
-  const bonusDuration = 10;
-  const duration = 20;
+  const rate = tokenSaleConfig.rate;
+  const tokenSupply = convertDecimals(tokenConfig.totalSupply);
+  const totalSaleAmount = convertDecimals(tokenSaleConfig.totalSaleAmount);
+  const bridgeSupply = convertDecimals(tokenConfig.bridgeSupply);
+  const userWithdrawalDelaySec = new BigNumber(tokenSaleConfig.userWithdrawalDelaySec);
+  const clearDelaySec = new BigNumber(tokenSaleConfig.clearDelaySec);
+  const bonusDuration = tokenSaleConfig.bonusDuration;
+  const duration = tokenSaleConfig.duration;
 
-  const bonusPercentage = 700;
-  const bonusDecreaseRate = 5;
+  const bonusPercentage = tokenSaleConfig.bonusPercentage;
+  const bonusDecreaseRate = tokenSaleConfig.bonusDecreaseRate;
 
   before(async () => {
-    const startTime = (await latestTime()) + 2;
-    this.token = await LTOToken.new(tokenSupply, bridge, 50);
+    // const startTime = (await latestTime()) + 2;
+    const startTime = tokenSaleConfig.startTime;
+    this.token = await LTOToken.new(tokenSupply, bridge, bridgeSupply);
     this.tokenSale = await LTOTokenSale.new(owner, this.token.address, totalSaleAmount);
     await this.token.transfer(this.tokenSale.address, totalSaleAmount);
     await this.tokenSale.startSale(startTime, rate, duration, bonusDuration, bonusPercentage, bonusDecreaseRate, userWithdrawalDelaySec, clearDelaySec);
@@ -95,9 +97,9 @@ contract('LTOTokenSale', ([owner, bridge, ...accounts]) => {
       let totalWannaBuy = await this.tokenSale.totalWannaBuyAmount();
       assert(totalWannaBuy.equals(0));
 
-      const times = Random.integer(5, 10);
-      let bonus = 0.07;
-      const decrease = 0.0005;
+      const times = Random.integer(5, 15);
+      let bonus = bonusPercentage / 10000;
+      const decrease = bonusDecreaseRate / 10000;
       let total = 0;
       for(let i = 0; i < times; i++) {
         total += await randomSent(accounts, this.tokenSale.address, bonus);
@@ -109,7 +111,7 @@ contract('LTOTokenSale', ([owner, bridge, ...accounts]) => {
       time = await this.tokenSale.bonusEndTime();
       await increaseTimeTo(time.plus(2));
 
-      const times2 = Random.integer(5, 10);
+      const times2 = Random.integer(5, 15);
       for(let i = 0; i < times2; i++) {
         total += await randomSent(accounts, this.tokenSale.address, 0);
       }
@@ -121,8 +123,10 @@ contract('LTOTokenSale', ([owner, bridge, ...accounts]) => {
       const proportion = totalSaleAmount.div(totalWannaBuy);
 
       for(var account in sentData) {
-        const totalTokens = convertDecimals((sentData[account] * rate).toFixed(8));
-        const tokens = proportion.mul(totalTokens).round(0);
+        let tokens = convertDecimals((sentData[account] * rate).toFixed(8));
+        if (totalSaleAmount.lessThan(totalWannaBuy)) {
+          tokens = proportion.mul(tokens).round(0);
+        }
         [sendEther, usedEther, getToken] = await this.tokenSale.getPublicSaleInfo(account);
         assert(tokens.equals(getToken));
       }
