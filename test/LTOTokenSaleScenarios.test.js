@@ -4,8 +4,8 @@ const config = require("../config.json");
 const tokenConfig = config.token;
 const tokenSaleConfig = config.tokenSale;
 const { ethSendTransaction } = require('./helpers/web3');
-
-const sleep = require('sleep-promise');
+const { increaseTimeTo } = require('zeppelin-solidity/test/helpers/increaseTime.js');
+const { latestTime } = require('zeppelin-solidity/test/helpers/latestTime.js');
 const BigNumber = web3.BigNumber;
 const gas = 2000000;
 
@@ -32,17 +32,6 @@ function getReceiverAddr(defaultAddr) {
   return defaultAddr;
 }
 
-function getUnixTime(){
-  return Math.round(new Date().getTime()/1000);
-}
-
-function sleepSec(sec){
-  if(sec < 0){
-    sec = 0;
-  }
-  return sleep(sec * 1000); // sleep use ms
-}
-
 contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4]) => {
   let startTime;
   const rate = 400;
@@ -54,7 +43,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4]) => {
   const duration = 10;
 
   beforeEach(async () => {
-    startTime = new BigNumber(getUnixTime() + 5);
+    startTime = (await latestTime()) + 5;
     this.token = await LTOToken.new(tokenSupply, bridge, 50);
     this.tokenSale = await LTOTokenSale.new(owner, this.token.address, totalSaleAmount);
     await this.token.transfer(this.tokenSale.address, totalSaleAmount);
@@ -73,7 +62,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4]) => {
       it('should result in every buyer receiving a fraction of the rate', async () => {
         const time = await this.tokenSale.startTime();
         //wating for starting
-        await sleepSec(time.plus(2).sub(getUnixTime()).toNumber());
+        await increaseTimeTo(time.plus(2))
 
         await ethSendTransaction({
           from: user1,
@@ -83,7 +72,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4]) => {
         });
         assert((await this.tokenSale.totalWannaBuyAmount()).equals(convertDecimals(rate)));
 
-        let [sendEther, usedEther, getToken] = await this.tokenSale.getSaleInfo(user1);
+        let [sendEther, usedEther, getToken] = await this.tokenSale.getPublicSaleInfo(user1);
         assert(sendEther.equals(convertDecimals(1, true)));
         assert(usedEther.equals(convertDecimals(1, true)));
         assert(getToken.equals(convertDecimals(rate)));
@@ -106,7 +95,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4]) => {
 
         assert((await this.tokenSale.totalWannaBuyAmount()).equals(convertDecimals(3 * rate)));
 
-        [sendEther, usedEther, getToken] = await this.tokenSale.getSaleInfo(user1);
+        [sendEther, usedEther, getToken] = await this.tokenSale.getPublicSaleInfo(user1);
         assert(sendEther.equals(convertDecimals(1, true)));
         assert(getToken.equals(totalSaleAmount.div(3).round(0)));
 
@@ -133,7 +122,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4]) => {
         let bonus = bonusPercentage;
         const time = await this.tokenSale.startTime();
         //wating for starting
-        await sleepSec(time.plus(2).sub(getUnixTime()).toNumber());
+        await increaseTimeTo(time.plus(2));
 
         await ethSendTransaction({
           from: user1,
@@ -143,7 +132,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4]) => {
         });
         let bought = convertDecimals(rate).add(convertDecimals(rate).div(10000).mul(bonus));
 
-        let [sendEther, usedEther, getToken] = await this.tokenSale.getSaleInfo(user1);
+        let [sendEther, usedEther, getToken] = await this.tokenSale.getPublicSaleInfo(user1);
         assert(sendEther.equals(convertDecimals(1, true)));
         assert(usedEther.equals(convertDecimals(1, true)));
         assert(getToken.equals(bought));
@@ -161,7 +150,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4]) => {
 
         bought = convertDecimals(rate).add(convertDecimals(rate).div(10000).mul(bonus));
 
-        [sendEther, usedEther, getToken] = await this.tokenSale.getSaleInfo(user1);
+        [sendEther, usedEther, getToken] = await this.tokenSale.getPublicSaleInfo(user1);
         assert(sendEther.equals(convertDecimals(1, true)));
         assert(getToken.equals(bought));
         totalBought = totalBought.add(bought);
@@ -180,7 +169,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4]) => {
       it('should result in every buyer receiving a fraction of the rate', async () => {
         const time = await this.tokenSale.startTime();
         //wating for starting
-        await sleepSec(time.plus(2).sub(getUnixTime()).toNumber());
+        await increaseTimeTo(time.plus(2));
 
         await ethSendTransaction({
           from: user1,
@@ -190,7 +179,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4]) => {
         });
         assert((await this.tokenSale.totalWannaBuyAmount()).equals(convertDecimals(rate).add(convertDecimals(rate).div(10000).mul(bonusPercentage))));
 
-        let [sendEther, usedEther, getToken] = await this.tokenSale.getSaleInfo(user1);
+        let [sendEther, usedEther, getToken] = await this.tokenSale.getPublicSaleInfo(user1);
         assert(sendEther.equals(convertDecimals(1, true)));
         assert(usedEther.equals(convertDecimals(1, true)));
         assert(getToken.equals(convertDecimals(rate).add(convertDecimals(rate).div(10000).mul(bonusPercentage))));
@@ -213,7 +202,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4]) => {
 
         assert((await this.tokenSale.totalWannaBuyAmount()).equals(convertDecimals(3 * rate).add(convertDecimals(3 * rate).div(10000).mul(bonusPercentage))));
 
-        [sendEther, usedEther, getToken] = await this.tokenSale.getSaleInfo(user1);
+        [sendEther, usedEther, getToken] = await this.tokenSale.getPublicSaleInfo(user1);
         assert(sendEther.equals(convertDecimals(1, true)));
         assert(getToken.equals(totalSaleAmount.div(3).round(0)));
 
@@ -240,7 +229,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4]) => {
         let bonus = bonusPercentage;
         const time = await this.tokenSale.startTime();
         //wating for starting
-        await sleepSec(time.plus(2).sub(getUnixTime()).toNumber());
+        await increaseTimeTo(time.plus(2));
 
         await ethSendTransaction({
           from: user1,
@@ -250,7 +239,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4]) => {
         });
         let bought = convertDecimals(rate).add(convertDecimals(rate).div(10000).mul(bonus));
 
-        let [sendEther, usedEther, getToken] = await this.tokenSale.getSaleInfo(user1);
+        let [sendEther, usedEther, getToken] = await this.tokenSale.getPublicSaleInfo(user1);
         assert(sendEther.equals(convertDecimals(1, true)));
         assert(usedEther.equals(convertDecimals(1, true)));
         assert(getToken.equals(bought));
@@ -268,7 +257,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4]) => {
 
         bought = convertDecimals(rate).add(convertDecimals(rate).div(10000).mul(bonus));
 
-        [sendEther, usedEther, getToken] = await this.tokenSale.getSaleInfo(user2);
+        [sendEther, usedEther, getToken] = await this.tokenSale.getPublicSaleInfo(user2);
         assert(sendEther.equals(convertDecimals(1, true)));
 
         assert(getToken.equals(bought));
@@ -283,7 +272,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4]) => {
         let bonus = bonusPercentage;
         const time = await this.tokenSale.startTime();
         //wating for starting
-        await sleepSec(time.plus(2).sub(getUnixTime()).toNumber());
+        await increaseTimeTo(time.plus(2));
 
         await ethSendTransaction({
           from: user1,
@@ -295,7 +284,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4]) => {
         let bought = convertDecimals(rate).add(convertDecimals(rate).div(10000).mul(bonus));
         const boughtUser1 = bought;
 
-        let [sendEther, usedEther, getToken] = await this.tokenSale.getSaleInfo(user1);
+        let [sendEther, usedEther, getToken] = await this.tokenSale.getPublicSaleInfo(user1);
         assert(sendEther.equals(convertDecimals(1, true)));
         assert(usedEther.equals(convertDecimals(1, true)));
         assert(getToken.equals(bought));
@@ -346,10 +335,10 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4]) => {
 
         const proportion = totalSaleAmount.div(totalBought);
 
-        [sendEther, usedEther, getToken] = await this.tokenSale.getSaleInfo(user4);
+        [sendEther, usedEther, getToken] = await this.tokenSale.getPublicSaleInfo(user4);
         assert(getToken.equals(proportion.mul(bought).round(0)));
 
-        [sendEther, usedEther, getToken] = await this.tokenSale.getSaleInfo(user1);
+        [sendEther, usedEther, getToken] = await this.tokenSale.getPublicSaleInfo(user1);
         assert(getToken.equals(proportion.mul(boughtUser1).round(0)));
       });
     });

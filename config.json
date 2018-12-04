@@ -1,22 +1,22 @@
 {
     "token":{
-        "totalSupply" : 185000000,
+        "totalSupply" : 50000000,
         "name" : "LTO Network Token",
         "symbol" : "LTO",
         "decimals" : 8,
         "bridgeAddr": "0xb950BE3e471B3A6cf3a45Fb341F2606a0B147B8F",
-        "bridgeSupply": 815000000
+        "bridgeSupply": 450000000
     },
     "tokenSale":{
-        "receiverAddr" : null ,
+        "receiverAddr" : null,
         "totalSaleAmount" : 50000000,
-        "rate": 400,
+        "rate": 3800,
         "duration": 604800,
         "bonusDuration": 86400,
         "bonusPercentage": 500,
         "bonusDecreaseRate": 5,
-        "startTime" : 1542672000,
+        "startTime" : 1545044400,
         "userWithdrawalDelaySec" : 86400,
-        "clearDelaySec" : 1296000
+        "clearDelaySec" : 604800
     }
 }

@@ -2,7 +2,7 @@ pragma solidity ^0.4.24;
 
 import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
-import 'zeppelin-solidity/contracts/token/ERC20/SafeERC20.sol';
+import 'zeppelin-solidity/contracts/token/ERC20/ERC20.sol';
 
 
 /**
@@ -12,7 +12,11 @@ import 'zeppelin-solidity/contracts/token/ERC20/SafeERC20.sol';
 contract LTOTokenSale is Ownable {
 
   using SafeMath for uint256;
-  using SafeERC20 for ERC20;
+
+  uint256 constant minimumAmount = 0.1 ether;     // Minimum amount of ether to transfer
+  uint256 constant ethDecimals = 1 ether;         // Amount used to divide ether with to calculate proportion
+  uint256 constant ltoEthDiffDecimals = 10**10;   // Amount used to get the number of desired decimals, so  convert from 18 to 8
+  uint256 constant bonusRateDivision = 10000;     // Amount used to divide the amount so the bonus can be calculated
 
   ERC20 public token;
   address public receiverAddr;
@@ -34,8 +38,14 @@ contract LTOTokenSale is Ownable {
   struct PurchaserInfo {
     bool withdrew;
     bool recorded;
-    uint256 amount;
-    uint256 bonus;
+    uint256 received;     // Received ether
+    uint256 accounted;    // Received ether + bonus
+  }
+
+  struct Purchase {
+    uint256 received;     // Received ether
+    uint256 used;         // Received ether multiplied by the proportion
+    uint256 tokens;       // To receive tokens
   }
   mapping(address => PurchaserInfo) public purchaserMapping;
   address[] public purchaserList;
@@ -124,15 +134,21 @@ contract LTOTokenSale is Ownable {
       proportion = 1 ether;
       return;
     }
-    proportion = totalSaleAmount.mul(1 ether).div(totalWannaBuyAmount);
+    proportion = totalSaleAmount.mul(ethDecimals).div(totalWannaBuyAmount);
   }
 
-  function getSaleInfo(address purchaser) public view returns (uint256, uint256, uint256) {
+  function getSaleInfo(address purchaser) internal view returns (Purchase p) {
     PurchaserInfo storage pi = purchaserMapping[purchaser];
-    uint256 sendEther = pi.amount;
-    uint256 usedEther = sendEther.mul(proportion).div(1 ether);
-    uint256 getToken = sendEther.add(pi.bonus).mul(proportion).div(1 ether).mul(rate).div(10**10);
-    return (sendEther, usedEther, getToken);
+    return Purchase(
+      pi.received,
+      pi.received.mul(proportion).div(ethDecimals),
+      pi.accounted.mul(proportion).div(ethDecimals).mul(rate).div(ltoEthDiffDecimals)
+    );
+  }
+
+  function getPublicSaleInfo(address purchaser) public view returns (uint256, uint256, uint256) {
+    Purchase memory purchase = getSaleInfo(purchaser);
+    return (purchase.received, purchase.used, purchase.tokens);
   }
 
   function () payable public {
@@ -140,7 +156,7 @@ contract LTOTokenSale is Ownable {
   }
 
   function buy() payable public onlyOpenTime {
-    require(msg.value >= 0.1 ether);
+    require(msg.value >= minimumAmount);
 
     uint256 amount = msg.value;
     PurchaserInfo storage pi = purchaserMapping[msg.sender];
@@ -148,16 +164,15 @@ contract LTOTokenSale is Ownable {
       pi.recorded = true;
       purchaserList.push(msg.sender);
     }
-    pi.amount = pi.amount.add(amount);
+    pi.received = pi.received.add(amount);
     globalAmount = globalAmount.add(amount);
     if (isBonusPeriod() && bonusDecreaseRate.mul(nrOfTransactions) <= bonusPercentage) {
       uint256 percentage = bonusPercentage.sub(bonusDecreaseRate.mul(nrOfTransactions));
-      uint256 bonus = amount.div(10000).mul(percentage);
-      pi.bonus = pi.bonus.add(bonus);
+      uint256 bonus = amount.div(bonusRateDivision).mul(percentage);
       amount = amount.add(bonus);
     }
-
-    totalWannaBuyAmount = totalWannaBuyAmount.add(amount.mul(rate).div(10**10));
+    pi.accounted = pi.accounted.add(amount);
+    totalWannaBuyAmount = totalWannaBuyAmount.add(amount.mul(rate).div(ltoEthDiffDecimals));
     _calcProportion();
     nrOfTransactions = nrOfTransactions.add(1);
   }
@@ -170,15 +185,15 @@ contract LTOTokenSale is Ownable {
     }
     pi.withdrew = true;
     withdrawn = withdrawn.add(1);
-    (uint256 sendEther, uint256 usedEther, uint256 getToken) = getSaleInfo(purchaser);
-    if (usedEther > 0 && getToken > 0) {
-      receiverAddr.transfer(usedEther);
-      token.transfer(purchaser, getToken);
-      if (sendEther.sub(usedEther) > 0) {
-        purchaser.transfer(sendEther.sub(usedEther));
+    Purchase memory purchase = getSaleInfo(purchaser);
+    if (purchase.used > 0 && purchase.tokens > 0) {
+      receiverAddr.transfer(purchase.used);
+      require(token.transfer(purchaser, purchase.tokens));
+      if (purchase.received.sub(purchase.used) > 0) {
+        purchaser.transfer(purchase.received.sub(purchase.used));
       }
     } else {
-      purchaser.transfer(sendEther);
+      purchaser.transfer(purchase.received);
     }
     return;
   }
