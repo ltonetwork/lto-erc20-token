@@ -13,10 +13,10 @@ contract LTOTokenSale is Ownable {
 
   using SafeMath for uint256;
 
-  uint256 constant minimumAmount = 0.1 ether;
-  uint256 constant ethDecimals = 1 ether;
-  uint256 constant ltoEthDiffDecimals = 10**10;
-  uint256 constant bonusRateDivision = 10000;
+  uint256 constant minimumAmount = 0.1 ether;     // Minimum amount of ether to transfer
+  uint256 constant ethDecimals = 1 ether;         // Amount used to divide ether with to calculate proportion
+  uint256 constant ltoEthDiffDecimals = 10**10;   // Amount used to get the number of desired decimals, so  convert from 18 to 8
+  uint256 constant bonusRateDivision = 10000;     // Amount used to divide the amount so the bonus can be calculated
 
   ERC20 public token;
   address public receiverAddr;
@@ -38,14 +38,14 @@ contract LTOTokenSale is Ownable {
   struct PurchaserInfo {
     bool withdrew;
     bool recorded;
-    uint256 received;
-    uint256 accounted;
+    uint256 received;     // Received ether
+    uint256 accounted;    // Received ether + bonus
   }
 
   struct Purchase {
-    uint256 received;
-    uint256 used;
-    uint256 tokens;
+    uint256 received;     // Received ether
+    uint256 used;         // Received ether multiplied by the proportion
+    uint256 tokens;       // To receive tokens
   }
   mapping(address => PurchaserInfo) public purchaserMapping;
   address[] public purchaserList;
