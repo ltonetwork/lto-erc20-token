@@ -13,6 +13,14 @@ const gas = 2000000;
 const sentData = [];
 const MAX_RANDOM_VALUE = 1000;
 
+const bonusPercentage = tokenSaleConfig.bonusPercentage;
+const bonusDecreaseRate = tokenSaleConfig.bonusDecreaseRate;
+let bonus = bonusPercentage / 10000;
+const decrease = bonusDecreaseRate / 10000;
+
+// let capFreeAccount;
+const capFreeAccounts = [];
+
 function convertDecimals(number, ether) {
   const etherDecimals = 18;
   let decimals = tokenConfig.decimals;
@@ -36,10 +44,14 @@ function getReceiverAddr(defaultAddr) {
   return defaultAddr;
 }
 
-async function randomSent(accounts, address, bonus) {
+async function randomSent(accounts, address, tokenSale) {
 
   const account = accounts[Random.integer(0,accounts.length - 1)];
-  let maxValue = web3.fromWei(web3.eth.getBalance(account)).div(2);
+  if (capFreeAccounts.length < 3 && Random.bool()) {
+    capFreeAccounts.push(account);
+    await tokenSale.addCapFreeAddress(account);
+  }
+  let maxValue = web3.fromWei(web3.eth.getBalance(account));
   if (maxValue > MAX_RANDOM_VALUE) {
     maxValue = MAX_RANDOM_VALUE;
   }
@@ -50,17 +62,34 @@ async function randomSent(accounts, address, bonus) {
   }
 
   let value = Random.integer(minValue, maxValue);
+  let calcValue = value;
   if (!sentData[account]) {
-    sentData[account] = 0;
+    sentData[account] = {sent: 0, accounted: 0};
   }
-  const bonusEth = value * bonus;
-  const total = value + bonusEth;
-  sentData[account] += total;
-  value = convertDecimals(value, true);
 
-  let hash = await ethSendTransaction({from: account, to: address, value: value, gas: gas});
+  if (capFreeAccounts.indexOf(account) == -1 && sentData[account].sent + value > 150) {
+    calcValue = value - ((sentData[account].sent + value) - 150);
+  }
+  let total = 0;
+  if (calcValue >= 0) {
+    const bonusEth = calcValue * bonus;
+    total = calcValue + bonusEth;
+    sentData[account].sent += calcValue;
+    sentData[account].accounted += total;
+  }
+
+  // console.log('Account: ', account, ' sends: ', value, ' with calcValue: ', calcValue, ' bonus: ', bonus);
+
+  let hash = await ethSendTransaction({from: account, to: address, value: convertDecimals(value, true), gas: gas});
   let receipt = web3.eth.getTransactionReceipt(hash);
-  assert.equal(receipt.status, '0x1', "The Transaction will success after startTime");
+  if (calcValue == 0) {
+    assert.equal(receipt.status, '0x0', "The Transaction will fail after sending more then 150 eth");
+  } else {
+    assert.equal(receipt.status, '0x1', "The Transaction will success after startTime");
+    if (bonus > 0) {
+      bonus -= decrease;
+    }
+  }
   return total;
 }
 
@@ -75,14 +104,10 @@ contract('LTOTokenSale', ([owner, bridge, ...accounts]) => {
   const bonusDuration = tokenSaleConfig.bonusDuration;
   const duration = tokenSaleConfig.duration;
 
-  const bonusPercentage = tokenSaleConfig.bonusPercentage;
-  const bonusDecreaseRate = tokenSaleConfig.bonusDecreaseRate;
-
   before(async () => {
-    // const startTime = (await latestTime()) + 2;
-    const startTime = tokenSaleConfig.startTime;
+    const startTime = (await latestTime()) + 2;
     this.token = await LTOToken.new(tokenSupply, bridge, bridgeSupply);
-    this.tokenSale = await LTOTokenSale.new(owner, this.token.address, totalSaleAmount);
+    this.tokenSale = await LTOTokenSale.new(owner, this.token.address, totalSaleAmount, owner);
     await this.token.transfer(this.tokenSale.address, totalSaleAmount);
     await this.tokenSale.startSale(startTime, rate, duration, bonusDuration, bonusPercentage, bonusDecreaseRate, userWithdrawalDelaySec, clearDelaySec);
   });
@@ -98,12 +123,9 @@ contract('LTOTokenSale', ([owner, bridge, ...accounts]) => {
       assert(totalWannaBuy.equals(0));
 
       const times = Random.integer(5, 15);
-      let bonus = bonusPercentage / 10000;
-      const decrease = bonusDecreaseRate / 10000;
       let total = 0;
       for(let i = 0; i < times; i++) {
-        total += await randomSent(accounts, this.tokenSale.address, bonus);
-        bonus -= decrease;
+        total += await randomSent(accounts, this.tokenSale.address, this.tokenSale);
       }
 
       totalWannaBuy = await this.tokenSale.totalWannaBuyAmount();
@@ -111,9 +133,11 @@ contract('LTOTokenSale', ([owner, bridge, ...accounts]) => {
       time = await this.tokenSale.bonusEndTime();
       await increaseTimeTo(time.plus(2));
 
+      bonus = 0;
+
       const times2 = Random.integer(5, 15);
       for(let i = 0; i < times2; i++) {
-        total += await randomSent(accounts, this.tokenSale.address, 0);
+        total += await randomSent(accounts, this.tokenSale.address, this.tokenSale);
       }
 
       total = total * rate;
@@ -123,9 +147,10 @@ contract('LTOTokenSale', ([owner, bridge, ...accounts]) => {
       const proportion = totalSaleAmount.div(totalWannaBuy);
 
       for(var account in sentData) {
-        let tokens = convertDecimals((sentData[account] * rate).toFixed(8));
+        let tokens = convertDecimals((sentData[account].accounted * rate).toFixed(8));
         if (totalSaleAmount.lessThan(totalWannaBuy)) {
           tokens = proportion.mul(tokens).round(0);
+          console.log('Tested with proportion');
         }
         [sendEther, usedEther, getToken] = await this.tokenSale.getPublicSaleInfo(account);
         assert(tokens.equals(getToken));
