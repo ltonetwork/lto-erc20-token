@@ -45,7 +45,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4]) => {
   beforeEach(async () => {
     startTime = (await latestTime()) + 5;
     this.token = await LTOToken.new(tokenSupply, bridge, 50);
-    this.tokenSale = await LTOTokenSale.new(owner, this.token.address, totalSaleAmount);
+    this.tokenSale = await LTOTokenSale.new(owner, this.token.address, totalSaleAmount, owner);
     await this.token.transfer(this.tokenSale.address, totalSaleAmount);
   });
 

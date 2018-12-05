@@ -9,6 +9,7 @@
     },
     "tokenSale":{
         "receiverAddr" : null,
+        "capListAddr": null,
         "totalSaleAmount" : 50000000,
         "rate": 3800,
         "duration": 604800,

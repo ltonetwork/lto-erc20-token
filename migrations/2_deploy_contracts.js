@@ -23,6 +23,7 @@ module.exports = function(deployer, network, accounts) {
 
   var defaultAddr = accounts[0];
   var receiverAddr = getReceiverAddr(defaultAddr);
+  var capListAddr = tokenSaleConfig.capListAddr || accounts[0];
   const bridgeSupply = convertDecimals(tokenConfig.bridgeSupply);
   var totalSaleAmount = convertDecimals(tokenSaleConfig.totalSaleAmount);
   var totalSupply = convertDecimals(tokenConfig.totalSupply);
@@ -41,7 +42,7 @@ module.exports = function(deployer, network, accounts) {
     tokenConfig.bridgeAddr,
     bridgeSupply)
     .then(function () {
-      return deployer.deploy(TokenSale, receiverAddr, Token.address, totalSaleAmount);
+      return deployer.deploy(TokenSale, receiverAddr, Token.address, totalSaleAmount, capListAddr);
     })
     .then(() => {
       return Token.deployed();
