@@ -18,7 +18,7 @@
     "sleep-promise": "^2.0.0",
     "solidity-coverage": "^0.5.11",
     "truffle": "^4.1.13",
-    "zeppelin-solidity": "^1.6.0"
+    "openzeppelin-solidity": "^2.0.0"
   },
   "scripts": {
     "only-test": "truffle test",
