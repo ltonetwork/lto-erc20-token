@@ -2,16 +2,17 @@ pragma solidity ^0.4.24;
 
 import 'zeppelin-solidity/contracts/token/ERC20/StandardToken.sol';
 
+
 contract LTOToken is StandardToken {
 
   uint256 internal internalTotalSupply;
 
-  string public name = "LTO Network Token";
-  string public symbol = "LTO";
-  uint8 public decimals = 8;
-  address public bridgeAddress;
+  string constant public name = "LTO Network Token";
+  string constant public symbol = "LTO";
+  uint8 constant public decimals = 8;
 
-  mapping (address => address) public intermediateAddresses;
+  address public bridgeAddress;
+  mapping (address => bool) public intermediateAddresses;
 
   constructor(
     uint256 _initialSupply,
@@ -43,7 +44,7 @@ contract LTOToken is StandardToken {
     address to = _to;
     // Check if the _to contains a intermediate address
     // if so transfer to the bridge instead
-    if (intermediateAddresses[to] == to) {
+    if (intermediateAddresses[to] == true) {
       to = bridgeAddress;
     }
 
@@ -64,6 +65,7 @@ contract LTOToken is StandardToken {
   function addIntermediateAddress(address _intermediate) public onlyBridge {
     require(_intermediate != address(0));
 
-    intermediateAddresses[_intermediate] = _intermediate;
+    intermediateAddresses[_intermediate] = true;
   }
 }
+

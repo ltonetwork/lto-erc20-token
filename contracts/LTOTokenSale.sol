@@ -37,7 +37,7 @@ contract LTOTokenSale is Ownable {
   uint256 public nrOfTransactions = 0;
 
   address public capListAddress;
-  mapping (address => address) public capFreeAddresses;
+  mapping (address => bool) public capFreeAddresses;
 
   struct PurchaserInfo {
     bool withdrew;
@@ -242,10 +242,11 @@ contract LTOTokenSale is Ownable {
   function addCapFreeAddress(address capFreeAddress) public onlyCapListAddress {
     require(capFreeAddress != address(0));
 
-    capFreeAddresses[capFreeAddress] = capFreeAddress;
+    capFreeAddresses[capFreeAddress] = true;
   }
 
   function isCapFree(address capFreeAddress) internal view returns (bool) {
-    return (capFreeAddresses[capFreeAddress] == capFreeAddress);
+    return (capFreeAddresses[capFreeAddress] == true);
   }
 }
+
