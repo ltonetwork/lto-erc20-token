@@ -5,8 +5,7 @@ const tokenConfig = config.token;
 const tokenSaleConfig = config.tokenSale;
 const { ethSendTransaction, ethGetBalance } = require('./helpers/web3');
 const constants = require('./helpers/constants');
-const { increaseTimeTo } = require('zeppelin-solidity/test/helpers/increaseTime.js');
-const { latestTime } = require('zeppelin-solidity/test/helpers/latestTime.js');
+const { increaseTo, latest } = require('openzeppelin-solidity/test/helpers/time.js');
 const BigNumber = web3.BigNumber;
 const gas = 2000000;
 
@@ -80,7 +79,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4, user5]) =>
       const bonusDecreaseRate = 0;
 
       before(async () => {
-        startTime = (await latestTime()) + 5;
+        startTime = (await latest()) + 5;
         this.tokenSale = await LTOTokenSale.new(owner, this.token.address, totalSaleAmount, owner);
         await this.token.transfer(this.tokenSale.address, totalSaleAmount);
         await this.tokenSale.startSale(startTime, rate, duration, bonusDuration, bonusPercentage, bonusDecreaseRate, userWithdrawalDelaySec, clearDelaySec);
@@ -137,7 +136,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4, user5]) =>
 
         it('should not accept payments', async () => {
           const time = await this.tokenSale.startTime();
-          assert(time > (await latestTime()), "The Start Time will after now for this Test");
+          assert(time > (await latest()), "The Start Time will after now for this Test");
           const transaction = {from: owner, to: this.tokenSale.address, value: convertDecimals(1, true)};
 
           const hash = await ethSendTransaction(transaction);
@@ -149,7 +148,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4, user5]) =>
           it('should accept payments up to 150 ether', async () => {
             const time = await this.tokenSale.startTime();
             //wating for starting
-            await increaseTimeTo(time.plus(2));
+            await increaseTo(time.plus(2));
 
             let hash = await ethSendTransaction({
               from: user1,
@@ -303,7 +302,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4, user5]) =>
               let balance = await this.token.balanceOf(user1);
               assert(balance.equals(0));
               //wating for End
-              await increaseTimeTo(time.plus(2));
+              await increaseTo(time.plus(2));
 
               try {
                 const tx = await this.tokenSale.withdrawalFor(0, 1);
@@ -339,7 +338,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4, user5]) =>
 
               it('should be possible for a user the withdraw', async () => {
                 const time = await this.tokenSale.userWithdrawalStartTime();
-                await increaseTimeTo(time.plus(2));
+                await increaseTo(time.plus(2));
 
                 const tx = await this.tokenSale.withdrawal({from: user2});
 
@@ -367,8 +366,8 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4, user5]) =>
                 it('should be possible to clear the token', async () => {
                   const time = await this.tokenSale.clearStartTime();
                   //wating for clearStart
-                  await increaseTimeTo(time.plus(2));
-                  
+                  await increaseTo(time.plus(2));
+
                   const tx = await this.tokenSale.clear(0, 0);
                   assert.equal(tx.receipt.status, '0x1', "Will Success");
                 });

@@ -6,8 +6,7 @@ const tokenSaleConfig = config.tokenSale;
 const { ethSendTransaction } = require('./helpers/web3');
 const Mock = require('mockjs');
 const Random = Mock.Random;
-const { increaseTimeTo } = require('zeppelin-solidity/test/helpers/increaseTime.js');
-const { latestTime } = require('zeppelin-solidity/test/helpers/latestTime.js');
+const { increaseTo, latest } = require('openzeppelin-solidity/test/helpers/time.js');
 const BigNumber = web3.BigNumber;
 const gas = 2000000;
 const sentData = [];
@@ -105,7 +104,7 @@ contract('LTOTokenSale', ([owner, bridge, ...accounts]) => {
   const duration = tokenSaleConfig.duration;
 
   before(async () => {
-    const startTime = (await latestTime()) + 2;
+    const startTime = (await latest()) + 2;
     this.token = await LTOToken.new(tokenSupply, bridge, bridgeSupply);
     this.tokenSale = await LTOTokenSale.new(owner, this.token.address, totalSaleAmount, owner);
     await this.token.transfer(this.tokenSale.address, totalSaleAmount);
@@ -117,7 +116,7 @@ contract('LTOTokenSale', ([owner, bridge, ...accounts]) => {
     it('should randomly send a random amounts of ether during the bonus period', async () => {
       let time = await this.tokenSale.startTime();
       //wating for starting
-      await increaseTimeTo(time.plus(2));
+      await increaseTo(time.plus(2));
 
       let totalWannaBuy = await this.tokenSale.totalWannaBuyAmount();
       assert(totalWannaBuy.equals(0));
@@ -131,7 +130,7 @@ contract('LTOTokenSale', ([owner, bridge, ...accounts]) => {
       totalWannaBuy = await this.tokenSale.totalWannaBuyAmount();
 
       time = await this.tokenSale.bonusEndTime();
-      await increaseTimeTo(time.plus(2));
+      await increaseTo(time.plus(2));
 
       bonus = 0;
 
