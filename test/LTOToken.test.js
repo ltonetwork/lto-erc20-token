@@ -36,7 +36,7 @@ contract('LTOToken', ([owner, bridge, otherAccount]) => {
           assert(totalSupply.equals(50));
 
           const bridgeSupply = await this.token.balanceOf(bridge);
-          assert(totalSupply.equals(50));
+          assert(bridgeSupply.equals(50));
         });
       });
     });
@@ -58,27 +58,30 @@ contract('LTOToken', ([owner, bridge, otherAccount]) => {
         it('should be added', async () => {
           const tx = await this.token.addIntermediateAddress(otherAccount, {from: bridge});
           assert.equal(tx.receipt.status, '0x1', 'failure');
+        });
 
-          describe('when transfering to an intermediate address', async () => {
+        describe('when transfering to an intermediate address', async () => {
+
+          it('should forward the funds to the bridge address', async () => {
 
             const tx = await this.token.transfer(otherAccount, 5);
 
-            it('should forward the funds to the bridge address', async () => {
+            assert.strictEqual(tx.receipt.status, '0x1', 'failure');
+            assert.strictEqual(tx.logs[0].event, 'Transfer');
+            assert.strictEqual(tx.logs[0].args.from, owner);
+            assert.strictEqual(tx.logs[0].args.to, otherAccount);
 
-              assert.strictEqual(tx.receipt.status, '0x1', 'failure');
-              assert.strictEqual(tx.logs[0].event, 'Transfer');
-              assert.strictEqual(tx.logs[0].args.from, owner);
-              assert.strictEqual(tx.logs[0].args.to, otherAccount);
+            const otherBalance = await this.token.balanceOf(otherAccount);
+            console.log('Other balance: ', otherBalance.toNumber());
+            assert.equal(otherBalance.toNumber(), 0);
 
-              const otherBalance = await this.token.balanceOf(otherAccount);
-              assert.equal(otherBalance.toNumber(), 0);
+            const bridgeBalance = await this.token.balanceOf(bridge);
+            console.log('Bridge balance: ', bridgeBalance.toNumber());
+            assert.equal(bridgeBalance.toNumber(), 55);
 
-              const bridgeBalance = await this.token.balanceOf(bridge);
-              assert.equal(bridgeBalance.toNumber(), 55);
-
-              const totalSupply = await this.token.totalSupply();
-              assert.equal(totalSupply.toNumber(), 45);
-            });
+            const totalSupply = await this.token.totalSupply();
+            console.log('Total supply', totalSupply.toNumber());
+            assert.equal(totalSupply.toNumber(), 45);
           });
         });
       });
