@@ -1,23 +1,17 @@
 pragma solidity ^0.4.24;
 
 import 'openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
+import 'openzeppelin-solidity/contracts/token/ERC20/ERC20Detailed.sol';
 
 
-contract LTOToken is ERC20 {
-
-  string constant public name = "LTO Network Token";
-  string constant public symbol = "LTO";
-  uint8 constant public decimals = 8;
+contract LTOToken is ERC20, ERC20Detailed {
 
   address public bridgeAddress;
   uint256 public bridgeBalance;
   mapping (address => bool) public intermediateAddresses;
 
-  constructor(
-    uint256 _initialSupply,
-    address _bridgeAddress,
-    uint256 _bridgeSupply
-  ) public {
+  constructor(uint256 _initialSupply, address _bridgeAddress, uint256 _bridgeSupply)
+    ERC20Detailed("LTO Network Token", "LTO", 8) public {
     _mint(msg.sender, _initialSupply);
     bridgeAddress = _bridgeAddress;
     bridgeBalance = _bridgeSupply;
