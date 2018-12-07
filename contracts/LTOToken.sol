@@ -1,29 +1,26 @@
 pragma solidity ^0.4.24;
 
-import 'zeppelin-solidity/contracts/token/ERC20/StandardToken.sol';
+import 'openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
 
-contract LTOToken is StandardToken {
 
-  uint256 internal internalTotalSupply;
+contract LTOToken is ERC20 {
 
-  string public name = "LTO Network Token";
-  string public symbol = "LTO";
-  uint8 public decimals = 8;
+  string constant public name = "LTO Network Token";
+  string constant public symbol = "LTO";
+  uint8 constant public decimals = 8;
+
   address public bridgeAddress;
-
-  mapping (address => address) public intermediateAddresses;
+  uint256 public bridgeBalance;
+  mapping (address => bool) public intermediateAddresses;
 
   constructor(
     uint256 _initialSupply,
     address _bridgeAddress,
     uint256 _bridgeSupply
   ) public {
-    internalTotalSupply = _initialSupply + _bridgeSupply;
-    totalSupply_ = _initialSupply;
-    balances[msg.sender] = _initialSupply;
-    balances[_bridgeAddress] = _bridgeSupply;
-
+    _mint(msg.sender, _initialSupply);
     bridgeAddress = _bridgeAddress;
+    bridgeBalance = _bridgeSupply;
   }
 
   modifier onlyBridge() {
@@ -31,39 +28,37 @@ contract LTOToken is StandardToken {
     _;
   }
 
-  /**
-    * @dev Transfer token for a specified address
-    * @param _to The address to transfer to.
-    * @param _value The amount to be transferred.
-    */
-  function transfer(address _to, uint256 _value) public returns (bool) {
-    require(_value <= balances[msg.sender]);
-    require(_to != address(0));
-
-    address to = _to;
-    // Check if the _to contains a intermediate address
-    // if so transfer to the bridge instead
-    if (intermediateAddresses[to] == to) {
-      to = bridgeAddress;
-    }
-
-    balances[msg.sender] = balances[msg.sender].sub(_value);
-    balances[to] = balances[to].add(_value);
-    emit Transfer(msg.sender, _to, _value);
-
-    recalculateTotalSupply();
-
-    return true;
-  }
-
-  function recalculateTotalSupply() internal {
-    totalSupply_ = internalTotalSupply - balances[bridgeAddress];
-  }
-
-
   function addIntermediateAddress(address _intermediate) public onlyBridge {
     require(_intermediate != address(0));
+    require(balanceOf(_intermediate) == 0, "Intermediate balance should be 0");
 
-    intermediateAddresses[_intermediate] = _intermediate;
+    intermediateAddresses[_intermediate] = true;
+  }
+
+  function _transfer(address from, address to, uint256 value) internal {
+    if (from == bridgeAddress) {
+      require(!intermediateAddresses[to], "Bridge can't transfer to intermediate");
+
+      bridgeBalance = bridgeBalance.sub(value);
+      _mint(from, value);
+      super._transfer(from, to, value);
+      return;
+    }
+
+    if (intermediateAddresses[to]) {
+      bridgeBalance = bridgeBalance.add(value);
+      super._transfer(from, to, value);
+      _burn(to, value);
+      return;
+    }
+
+    super._transfer(from, to, value);
+  }
+
+  function balanceOf(address owner) public view returns (uint256) {
+    if (owner == bridgeAddress) {
+      return bridgeBalance;
+    }
+    return super.balanceOf(owner);
   }
 }
