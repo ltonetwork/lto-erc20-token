@@ -220,17 +220,17 @@ contract LTOTokenSale is Ownable {
     return;
   }
 
-  function withdrawal() payable public onlyUserWithdrawalTime {
+  function withdrawal() public onlyUserWithdrawalTime {
     _withdrawal(msg.sender);
   }
 
-  function withdrawalFor(uint256 index, uint256 stop) payable public onlyAutoWithdrawalTime onlyOwner {
+  function withdrawalFor(uint256 index, uint256 stop) public onlyAutoWithdrawalTime onlyOwner {
     for (; index < stop; index++) {
       _withdrawal(purchaserList[index]);
     }
   }
 
-  function clear(uint256 tokenAmount, uint256 etherAmount) payable public purchasersAllWithdrawn onlyClearTime onlyOwner {
+  function clear(uint256 tokenAmount, uint256 etherAmount) public purchasersAllWithdrawn onlyClearTime onlyOwner {
     if (tokenAmount > 0) {
       token.transfer(receiverAddr, tokenAmount);
     }
