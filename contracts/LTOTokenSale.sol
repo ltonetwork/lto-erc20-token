@@ -2,7 +2,7 @@ pragma solidity ^0.4.24;
 
 import 'openzeppelin-solidity/contracts/ownership/Ownable.sol';
 import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
-import 'openzeppelin-solidity/contracts/token/ERC20/IERC20.sol';
+import 'openzeppelin-solidity/contracts/token/ERC20/ERC20Burnable.sol';
 
 
 /**
@@ -19,7 +19,7 @@ contract LTOTokenSale is Ownable {
   uint256 constant ltoEthDiffDecimals = 10**10;   // Amount used to get the number of desired decimals, so  convert from 18 to 8
   uint256 constant bonusRateDivision = 10000;     // Amount used to divide the amount so the bonus can be calculated
 
-  IERC20 public token;
+  ERC20Burnable public token;
   address public receiverAddr;
   uint256 public totalSaleAmount;
   uint256 public totalWannaBuyAmount;
@@ -85,7 +85,7 @@ contract LTOTokenSale is Ownable {
     _;
   }
 
-  constructor(address _receiverAddr, IERC20 _token, uint256 _totalSaleAmount, address _capListAddress) public {
+  constructor(address _receiverAddr, ERC20Burnable _token, uint256 _totalSaleAmount, address _capListAddress) public {
     require(_receiverAddr != address(0));
     require(_token != address(0));
     require(_capListAddress != address(0));
@@ -232,7 +232,7 @@ contract LTOTokenSale is Ownable {
 
   function clear(uint256 tokenAmount, uint256 etherAmount) public purchasersAllWithdrawn onlyClearTime onlyOwner {
     if (tokenAmount > 0) {
-      token.transfer(receiverAddr, tokenAmount);
+      token.burn(tokenAmount);
     }
     if (etherAmount > 0) {
       receiverAddr.transfer(etherAmount);

@@ -3,7 +3,7 @@ const LTOTokenSale = artifacts.require("./LTOTokenSale.sol");
 const config = require("../config.json");
 const tokenConfig = config.token;
 const tokenSaleConfig = config.tokenSale;
-const { ethSendTransaction, ethGetBalance } = require('./helpers/web3');
+const { ethSendTransaction, ethGetBalance } = require('openzeppelin-solidity/test/helpers/web3');
 const constants = require('./helpers/constants');
 const { increaseTo, latest } = require('openzeppelin-solidity/test/helpers/time.js');
 const BigNumber = web3.BigNumber;
@@ -96,6 +96,9 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4, user5]) =>
           const amount = await this.tokenSale.totalSaleAmount();
           assert(totalSaleAmount.equals(amount));
 
+          const actualAmount = await this.token.balanceOf(this.tokenSale.address);
+          assert(totalSaleAmount.equals(actualAmount));
+
           const time = await this.tokenSale.startTime();
           assert(time.equals(startTime));
 
@@ -159,6 +162,8 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4, user5]) =>
             let receipt = web3.eth.getTransactionReceipt(hash);
             assert.equal(receipt.status, '0x1', "The Transaction will success after startTime");
             assert((await this.tokenSale.totalWannaBuyAmount()).equals(convertDecimals(rate)));
+
+            assert((await ethGetBalance(this.tokenSale.address)).equals(convertDecimals(1, true)));
 
             let [sendEther, usedEther, getToken] = await this.tokenSale.getPublicSaleInfo(user1);
             assert(sendEther.equals(convertDecimals(1, true)));
@@ -301,6 +306,9 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4, user5]) =>
               const time = await this.tokenSale.endTime();
               let balance = await this.token.balanceOf(user1);
               assert(balance.equals(0));
+
+              const tokenSaleBalance = await this.token.balanceOf(this.tokenSale.address);
+              assert(totalSaleAmount.equals(tokenSaleBalance));
               //wating for End
               await increaseTo(time.plus(2));
 
@@ -310,6 +318,10 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4, user5]) =>
 
                 const balance = await this.token.balanceOf(user1);
                 assert(balance.equals(convertDecimals(rate)));
+
+                const tokenSaleBalance = await this.token.balanceOf(this.tokenSale.address);
+                const expectedBalance = totalSaleAmount.sub(convertDecimals(rate));
+                assert(expectedBalance.equals(tokenSaleBalance));
               } catch (e) {
                 console.log(e);
               }
@@ -368,8 +380,19 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4, user5]) =>
                   //wating for clearStart
                   await increaseTo(time.plus(2));
 
-                  const tx = await this.tokenSale.clear(0, 0);
+                  // Verify if token sale has the expected remaing tokens
+                  const remainingTokens = totalSaleAmount.sub(convertDecimals(477 * rate));
+                  assert((await this.token.balanceOf(this.tokenSale.address)).equals(remainingTokens));
+
+                  // Verify if the token sale has the expected ether
+                  const etherBalance = await ethGetBalance(this.tokenSale.address);
+                  assert(etherBalance.equals(0));
+
+                  const tx = await this.tokenSale.clear(remainingTokens, 0);
                   assert.equal(tx.receipt.status, '0x1', "Will Success");
+
+                  const remainingSupply = await this.token.totalSupply();
+                  assert(remainingSupply.equals(convertDecimals(477 * rate)));
                 });
               });
             });
