@@ -93,12 +93,32 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4, user5]) =>
           }
         });
 
-        before(async () => {
-          await this.token.transfer(this.tokenSale.address, totalSaleAmount);
-          await this.tokenSale.startSale(startTime, rate, duration, bonusDuration, bonusPercentage, bonusDecreaseRate, userWithdrawalDelaySec, clearDelaySec);
+        it('should have correct initial info before start', async () => {
+          const address = await this.tokenSale.token();
+          assert.equal(address, this.token.address);
+
+          const receiverAddress = await this.tokenSale.receiverAddr();
+          assert.equal(receiverAddress.toLowerCase(), owner);
+
+          const amount = await this.tokenSale.totalSaleAmount();
+          assert(amount.equals(totalSaleAmount));
+
+          const actualAmount = await this.token.balanceOf(this.tokenSale.address);
+          assert(actualAmount.equals(web3.toBigNumber(0)));
+
+          assert.isFalse(await this.tokenSale.isStarted());
+          assert.isFalse(await this.tokenSale.isEnded());
+          assert.isFalse(await this.tokenSale.isUserWithdrawalTime());
+          assert.isFalse(await this.tokenSale.isClearTime());
         });
 
         describe('when the token sale start date is set', () => {
+
+          before(async () => {
+            await this.token.transfer(this.tokenSale.address, totalSaleAmount);
+            await this.tokenSale.startSale(startTime, rate, duration, bonusDuration, bonusPercentage, bonusDecreaseRate, userWithdrawalDelaySec, clearDelaySec);
+          });
+
           it('should have the correct info', async () => {
             const address = await this.tokenSale.token();
             assert.equal(address, this.token.address);
@@ -111,6 +131,11 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4, user5]) =>
 
             const actualAmount = await this.token.balanceOf(this.tokenSale.address);
             assert(totalSaleAmount.equals(actualAmount));
+
+            assert.isFalse(await this.tokenSale.isStarted());
+            assert.isFalse(await this.tokenSale.isEnded());
+            assert.isFalse(await this.tokenSale.isUserWithdrawalTime());
+            assert.isFalse(await this.tokenSale.isClearTime());
 
             const time = await this.tokenSale.startTime();
             assert(time.equals(startTime));

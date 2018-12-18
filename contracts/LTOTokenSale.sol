@@ -102,15 +102,15 @@ contract LTOTokenSale is Ownable {
   }
 
   function isEnded() public view returns(bool) {
-    return now > endTime;
+    return 0 < endTime && now > endTime;
   }
 
   function isUserWithdrawalTime() public view returns(bool) {
-    return now > userWithdrawalStartTime;
+    return 0 < userWithdrawalStartTime && now > userWithdrawalStartTime;
   }
 
   function isClearTime() public view returns(bool) {
-    return now > clearStartTime;
+    return 0 < clearStartTime && now > clearStartTime;
   }
 
   function isBonusPeriod() public view returns(bool) {
