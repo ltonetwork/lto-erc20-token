@@ -124,6 +124,7 @@ contract LTOTokenSale is Ownable {
     require(_startTime > 0);
     require(_rate > 0);
     require(duration > 0);
+    require(token.balanceOf(this) == totalSaleAmount);
 
     rate = _rate;
     bonusPercentage = _bonusPercentage;

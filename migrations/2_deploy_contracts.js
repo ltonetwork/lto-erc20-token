@@ -34,8 +34,8 @@ module.exports = function(deployer, network, accounts) {
   var tokenInstance = null;
   var toknSaleInstance = null;
 
-  var bonusPercentage = convertDecimals(tokenSaleConfig.bonusPercentage, 18);
-  var bonusDecreaseRate = convertDecimals(tokenSaleConfig.bonusDecreaseRate, 18);
+  var bonusPercentage = tokenSaleConfig.bonusPercentage;
+  var bonusDecreaseRate = tokenSaleConfig.bonusDecreaseRate;
 
   return deployer.deploy(Token,
     totalSupply,
