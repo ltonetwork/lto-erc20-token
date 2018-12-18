@@ -145,7 +145,7 @@ contract LTOTokenSale is Ownable {
     assert(totalSaleAmount > 0);
 
     if (totalSaleAmount >= totalWannaBuyAmount) {
-      proportion = 1 ether;
+      proportion = ethDecimals;
       return;
     }
     proportion = totalSaleAmount.mul(ethDecimals).div(totalWannaBuyAmount);
