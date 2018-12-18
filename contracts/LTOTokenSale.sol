@@ -141,7 +141,9 @@ contract LTOTokenSale is Ownable {
 
 
   function _calcProportion() internal {
-    if (totalWannaBuyAmount == 0 || totalSaleAmount >= totalWannaBuyAmount) {
+    assert(totalSaleAmount > 0);
+
+    if (totalSaleAmount >= totalWannaBuyAmount) {
       proportion = 1 ether;
       return;
     }
