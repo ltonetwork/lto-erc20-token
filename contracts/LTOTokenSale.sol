@@ -215,7 +215,7 @@ contract LTOTokenSale is Ownable {
       receiverAddr.transfer(purchase.used);
       require(token.transfer(purchaser, purchase.tokens));
       if (purchase.received.sub(purchase.used) > 0) {
-        purchaser.transfer(purchase.received.sub(purchase.used));
+        purchaser.send(purchase.received.sub(purchase.used));
       }
     } else {
       assert(false);

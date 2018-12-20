@@ -1,5 +1,6 @@
 const LTOToken = artifacts.require("./LTOToken.sol");
 const LTOTokenSale = artifacts.require("./LTOTokenSale.sol");
+const FakeWallet = artifacts.require("./FakeWallet.sol");
 const config = require("../config.json");
 const tokenConfig = config.token;
 const tokenSaleConfig = config.tokenSale;
@@ -32,7 +33,7 @@ function getReceiverAddr(defaultAddr) {
   return defaultAddr;
 }
 
-contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4, user5]) => {
+contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4, user5, user6]) => {
   const rate = tokenSaleConfig.rate;
   const tokenSupply = convertDecimals(tokenConfig.totalSupply);
   const totalSaleAmount = convertDecimals(tokenSaleConfig.totalSaleAmount);
@@ -274,7 +275,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4, user5]) =>
                 from: user3,
                 to: this.tokenSale.address,
                 value: convertDecimals(200, true),
-                gas: gas
+                gas
               });
               receipt = web3.eth.getTransactionReceipt(hash);
               assert.equal(receipt.status, '0x1', "The Transaction will success after startTime");
@@ -283,6 +284,24 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4, user5]) =>
 
               [sendEther, usedEther, getToken] = await this.tokenSale.getPublicSaleInfo(user3);
               assert(sendEther.equals(convertDecimals(150, true)));
+            });
+
+            it('should accept payment from a smart contract', async () => {
+              this.wallet = await FakeWallet.new({from: user6});
+              let hash = await ethSendTransaction({
+                from: user6,
+                to: this.wallet.address,
+                value: convertDecimals(1, true),
+                gas: gas
+              });
+
+              try {
+                const tx = await this.wallet.buyTokens(this.tokenSale.address, convertDecimals(1, true), {from: user6});
+              } catch (err) {
+                console.log(err);
+              }
+              purchaser = await this.tokenSale.purchaserList((await this.tokenSale.getPurchaserCount()).toNumber() - 1);
+              assert.equal(purchaser, this.wallet.address);
             });
 
             it('should not be possible to add cap free users other then the assigned address', async () => {
@@ -312,9 +331,9 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4, user5]) =>
               receipt = web3.eth.getTransactionReceipt(hash);
               assert.equal(receipt.status, '0x1', "The Transaction will success after startTime");
 
-              assert((await this.tokenSale.totalWannaBuyAmount()).equals(convertDecimals(477 * rate)));
+              assert((await this.tokenSale.totalWannaBuyAmount()).equals(convertDecimals(478 * rate)));
 
-              purchaser = await this.tokenSale.purchaserList(4);
+              purchaser = await this.tokenSale.purchaserList((await this.tokenSale.getPurchaserCount()).toNumber() - 1);
               assert.equal(purchaser, user5);
 
               [sendEther, usedEther, getToken] = await this.tokenSale.getPublicSaleInfo(user5);
@@ -404,6 +423,12 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4, user5]) =>
                   assert.equal(tx4.receipt.status, '0x1', "Will Success");
                 });
 
+                it('should be possible to withdraw the remaining purchasers', async () => {
+                  const remainingCount = (await this.tokenSale.getPurchaserCount()).toNumber();
+                  const tx5 = await this.tokenSale.withdrawalFor(0, remainingCount);
+                  assert.equal(tx5.receipt.status, '0x1', "Will Success");
+                });
+
                 it('should not be possible to clear the token sale', async () => {
                   try {
                     const tx = await this.tokenSale.clear(0, 0);
@@ -419,7 +444,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4, user5]) =>
                     await increaseTo(time.plus(2));
 
                     // Verify if token sale has the expected remaing tokens
-                    const remainingTokens = totalSaleAmount.sub(convertDecimals(477 * rate));
+                    const remainingTokens = totalSaleAmount.sub(convertDecimals(478 * rate));
                     assert((await this.token.balanceOf(this.tokenSale.address)).equals(remainingTokens));
 
                     // Verify if the token sale has the expected ether
@@ -430,7 +455,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4, user5]) =>
                     assert.equal(tx.receipt.status, '0x1', "Will Success");
 
                     const remainingSupply = await this.token.totalSupply();
-                    assert(remainingSupply.equals(convertDecimals(477 * rate)));
+                    assert(remainingSupply.equals(convertDecimals(478 * rate)));
                   });
                 });
               });
