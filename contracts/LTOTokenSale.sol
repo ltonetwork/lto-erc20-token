@@ -42,6 +42,7 @@ contract LTOTokenSale is Ownable {
   struct PurchaserInfo {
     bool withdrew;
     bool recorded;
+    bool failedWithdrew;
     uint256 received;     // Received ether
     uint256 accounted;    // Received ether + bonus
   }
@@ -140,7 +141,6 @@ contract LTOTokenSale is Ownable {
     return purchaserList.length;
   }
 
-
   function _calcProportion() internal {
     assert(totalSaleAmount > 0);
 
@@ -215,7 +215,9 @@ contract LTOTokenSale is Ownable {
       receiverAddr.transfer(purchase.used);
       require(token.transfer(purchaser, purchase.tokens));
       if (purchase.received.sub(purchase.used) > 0) {
-        purchaser.send(purchase.received.sub(purchase.used));
+        if (!purchaser.send(purchase.received.sub(purchase.used))) {
+          pi.failedWithdrew = true;
+        }
       }
     } else {
       assert(false);

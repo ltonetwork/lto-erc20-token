@@ -126,6 +126,9 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3]) => {
 
           const balance = await this.token.balanceOf(user1);
           assert(balance.equals(expectedTokens));
+
+          [withdrew, recorded, failedWithdrew] = await this.tokenSale.purchaserMapping(this.wallet.address);
+          assert(failedWithdrew);
         } catch (e) {
           console.log(e);
         }
