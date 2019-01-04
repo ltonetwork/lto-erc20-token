@@ -250,6 +250,12 @@ contract LTOTokenSale is Ownable {
     capFreeAddresses[capFreeAddress] = true;
   }
 
+  function removeCapFreeAddress(address capFreeAddress) public onlyCapListAddress {
+    require(capFreeAddress != address(0));
+
+    capFreeAddresses[capFreeAddress] = false;
+  }
+
   function isCapFree(address capFreeAddress) internal view returns (bool) {
     return (capFreeAddresses[capFreeAddress]);
   }
