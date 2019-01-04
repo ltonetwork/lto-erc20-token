@@ -2,7 +2,7 @@ pragma solidity ^0.4.24;
 
 import 'openzeppelin-solidity/contracts/ownership/Ownable.sol';
 import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
-import 'openzeppelin-solidity/contracts/token/ERC20/IERC20.sol';
+import 'openzeppelin-solidity/contracts/token/ERC20/ERC20Burnable.sol';
 
 
 /**
@@ -19,7 +19,7 @@ contract LTOTokenSale is Ownable {
   uint256 constant ltoEthDiffDecimals = 10**10;   // Amount used to get the number of desired decimals, so  convert from 18 to 8
   uint256 constant bonusRateDivision = 10000;     // Amount used to divide the amount so the bonus can be calculated
 
-  IERC20 public token;
+  ERC20Burnable public token;
   address public receiverAddr;
   uint256 public totalSaleAmount;
   uint256 public totalWannaBuyAmount;
@@ -37,11 +37,12 @@ contract LTOTokenSale is Ownable {
   uint256 public nrOfTransactions = 0;
 
   address public capListAddress;
-  mapping (address => address) public capFreeAddresses;
+  mapping (address => bool) public capFreeAddresses;
 
   struct PurchaserInfo {
     bool withdrew;
     bool recorded;
+    bool failedWithdrew;
     uint256 received;     // Received ether
     uint256 accounted;    // Received ether + bonus
   }
@@ -85,7 +86,7 @@ contract LTOTokenSale is Ownable {
     _;
   }
 
-  constructor(address _receiverAddr, IERC20 _token, uint256 _totalSaleAmount, address _capListAddress) public {
+  constructor(address _receiverAddr, ERC20Burnable _token, uint256 _totalSaleAmount, address _capListAddress) public {
     require(_receiverAddr != address(0));
     require(_token != address(0));
     require(_capListAddress != address(0));
@@ -102,15 +103,15 @@ contract LTOTokenSale is Ownable {
   }
 
   function isEnded() public view returns(bool) {
-    return now > endTime;
+    return 0 < endTime && now > endTime;
   }
 
   function isUserWithdrawalTime() public view returns(bool) {
-    return now > userWithdrawalStartTime;
+    return 0 < userWithdrawalStartTime && now > userWithdrawalStartTime;
   }
 
   function isClearTime() public view returns(bool) {
-    return now > clearStartTime;
+    return 0 < clearStartTime && now > clearStartTime;
   }
 
   function isBonusPeriod() public view returns(bool) {
@@ -124,6 +125,7 @@ contract LTOTokenSale is Ownable {
     require(_startTime > 0);
     require(_rate > 0);
     require(duration > 0);
+    require(token.balanceOf(this) == totalSaleAmount);
 
     rate = _rate;
     bonusPercentage = _bonusPercentage;
@@ -139,10 +141,11 @@ contract LTOTokenSale is Ownable {
     return purchaserList.length;
   }
 
-
   function _calcProportion() internal {
-    if (totalWannaBuyAmount == 0 || totalSaleAmount >= totalWannaBuyAmount) {
-      proportion = 1 ether;
+    assert(totalSaleAmount > 0);
+
+    if (totalSaleAmount >= totalWannaBuyAmount) {
+      proportion = ethDecimals;
       return;
     }
     proportion = totalSaleAmount.mul(ethDecimals).div(totalWannaBuyAmount);
@@ -188,7 +191,7 @@ contract LTOTokenSale is Ownable {
     pi.received = pi.received.add(amount);
 
     globalAmount = globalAmount.add(amount);
-    if (isBonusPeriod() && bonusDecreaseRate.mul(nrOfTransactions) <= bonusPercentage) {
+    if (isBonusPeriod() && bonusDecreaseRate.mul(nrOfTransactions) < bonusPercentage) {
       uint256 percentage = bonusPercentage.sub(bonusDecreaseRate.mul(nrOfTransactions));
       uint256 bonus = amount.div(bonusRateDivision).mul(percentage);
       amount = amount.add(bonus);
@@ -212,27 +215,29 @@ contract LTOTokenSale is Ownable {
       receiverAddr.transfer(purchase.used);
       require(token.transfer(purchaser, purchase.tokens));
       if (purchase.received.sub(purchase.used) > 0) {
-        purchaser.transfer(purchase.received.sub(purchase.used));
+        if (!purchaser.send(purchase.received.sub(purchase.used))) {
+          pi.failedWithdrew = true;
+        }
       }
     } else {
-      purchaser.transfer(purchase.received);
+      assert(false);
     }
     return;
   }
 
-  function withdrawal() payable public onlyUserWithdrawalTime {
+  function withdrawal() public onlyUserWithdrawalTime {
     _withdrawal(msg.sender);
   }
 
-  function withdrawalFor(uint256 index, uint256 stop) payable public onlyAutoWithdrawalTime onlyOwner {
+  function withdrawalFor(uint256 index, uint256 stop) public onlyAutoWithdrawalTime onlyOwner {
     for (; index < stop; index++) {
       _withdrawal(purchaserList[index]);
     }
   }
 
-  function clear(uint256 tokenAmount, uint256 etherAmount) payable public purchasersAllWithdrawn onlyClearTime onlyOwner {
+  function clear(uint256 tokenAmount, uint256 etherAmount) public purchasersAllWithdrawn onlyClearTime onlyOwner {
     if (tokenAmount > 0) {
-      token.transfer(receiverAddr, tokenAmount);
+      token.burn(tokenAmount);
     }
     if (etherAmount > 0) {
       receiverAddr.transfer(etherAmount);
@@ -242,10 +247,10 @@ contract LTOTokenSale is Ownable {
   function addCapFreeAddress(address capFreeAddress) public onlyCapListAddress {
     require(capFreeAddress != address(0));
 
-    capFreeAddresses[capFreeAddress] = capFreeAddress;
+    capFreeAddresses[capFreeAddress] = true;
   }
 
   function isCapFree(address capFreeAddress) internal view returns (bool) {
-    return (capFreeAddresses[capFreeAddress] == capFreeAddress);
+    return (capFreeAddresses[capFreeAddress]);
   }
 }
