@@ -15,10 +15,10 @@
     "ganache-cli": "6.1.8",
     "mocha": "^5.2.0",
     "mockjs": "^1.0.1-beta3",
-    "openzeppelin-solidity": "^2.0.0",
+    "openzeppelin-solidity": "2.0.0",
     "sleep-promise": "^2.0.0",
     "solidity-coverage": "^0.5.11",
-    "truffle": "^4.1.13"
+    "truffle": "4.1.14"
   },
   "scripts": {
     "only-test": "truffle test",
