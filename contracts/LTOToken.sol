@@ -3,9 +3,10 @@ pragma solidity ^0.4.24;
 import 'openzeppelin-solidity/contracts/token/ERC20/ERC20.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/ERC20Detailed.sol';
 import "openzeppelin-solidity/contracts/token/ERC20/ERC20Burnable.sol";
+import "openzeppelin-solidity/contracts/token/ERC20/ERC20Pausable.sol";
 
 
-contract LTOToken is ERC20, ERC20Detailed, ERC20Burnable {
+contract LTOToken is ERC20, ERC20Detailed, ERC20Burnable, ERC20Pausable {
 
   address public bridgeAddress;
   uint256 public bridgeBalance;
