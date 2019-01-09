@@ -37,6 +37,8 @@ contract('LTOToken', ([owner, bridge, otherAccount]) => {
 
           const bridgeSupply = await this.token.balanceOf(bridge);
           assert(bridgeSupply.equals(50));
+
+          assert.equal(await this.token.paused(), false);
         });
       });
     });
