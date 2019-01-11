@@ -43,9 +43,9 @@ contract LTOTokenSale is Ownable, ReentrancyGuard {
   struct PurchaserInfo {
     bool withdrew;
     bool recorded;
-    bool failedWithdrew;
     uint256 received;     // Received ether
     uint256 accounted;    // Received ether + bonus
+    uint256 unreceived;   // Ether stuck because failed withdraw
   }
 
   struct Purchase {
@@ -215,9 +215,11 @@ contract LTOTokenSale is Ownable, ReentrancyGuard {
     if (purchase.used > 0 && purchase.tokens > 0) {
       receiverAddr.transfer(purchase.used);
       require(token.transfer(purchaser, purchase.tokens));
-      if (purchase.received.sub(purchase.used) > 0) {
-        if (!purchaser.send(purchase.received.sub(purchase.used))) {
-          pi.failedWithdrew = true;
+
+      uint256 unused = purchase.received.sub(purchase.used);
+      if (unused > 0) {
+        if (!purchaser.send(unused)) {
+          pi.unreceived = unused;
         }
       }
     } else {
@@ -250,10 +252,9 @@ contract LTOTokenSale is Ownable, ReentrancyGuard {
     PurchaserInfo storage pi = purchaserMapping[msg.sender];
 
     require(pi.recorded);
-    require(pi.failedWithdrew);
-    Purchase memory purchase = getSaleInfo(msg.sender);
-    if (alternativeAddress.send(purchase.received.sub(purchase.used))) {
-      pi.failedWithdrew = false;
+    require(pi.unreceived > 0);
+    if (alternativeAddress.send(pi.unreceived)) {
+      pi.unreceived = 0;
     }
   }
 
