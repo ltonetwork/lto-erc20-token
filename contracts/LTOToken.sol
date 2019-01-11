@@ -34,9 +34,10 @@ contract LTOToken is ERC20, ERC20Detailed, ERC20Burnable {
 
   function _transfer(address from, address to, uint256 value) internal {
     require(to != bridgeAddress);
-    
+
     if (from == bridgeAddress) {
       require(!intermediateAddresses[to], "Bridge can't transfer to intermediate");
+      require(value <= bridgeBalance);
 
       bridgeBalance = bridgeBalance.sub(value);
       _mint(from, value);
