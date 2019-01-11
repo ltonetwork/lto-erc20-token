@@ -35,7 +35,7 @@ contract('LTOToken', ([owner, bridge, otherAccount]) => {
           const totalSupply = await this.token.totalSupply();
           assert(totalSupply.equals(50));
 
-          const bridgeSupply = await this.token.balanceOf(bridge);
+          const bridgeSupply = await this.token.bridgeBalance();
           assert(bridgeSupply.equals(50));
         });
       });
@@ -74,7 +74,7 @@ contract('LTOToken', ([owner, bridge, otherAccount]) => {
             const otherBalance = await this.token.balanceOf(otherAccount);
             assert.equal(otherBalance.toNumber(), 0);
 
-            const bridgeBalance = await this.token.balanceOf(bridge);
+            const bridgeBalance = await this.token.bridgeBalance();
             assert.equal(bridgeBalance.toNumber(), 55);
 
             const totalSupply = await this.token.totalSupply();

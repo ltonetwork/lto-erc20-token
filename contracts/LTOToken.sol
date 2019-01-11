@@ -56,9 +56,6 @@ contract LTOToken is ERC20, ERC20Detailed, ERC20Burnable {
   }
 
   function balanceOf(address owner) public view returns (uint256) {
-    if (owner == bridgeAddress) {
-      return bridgeBalance;
-    }
     return super.balanceOf(owner);
   }
 }
