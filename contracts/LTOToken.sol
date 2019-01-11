@@ -16,8 +16,6 @@ contract LTOToken is ERC20, ERC20Detailed, ERC20Burnable {
     _mint(msg.sender, _initialSupply);
     bridgeAddress = _bridgeAddress;
     bridgeBalance = _bridgeSupply;
-
-    emit Transfer(address(0), _bridgeAddress, _bridgeSupply);
   }
 
   modifier onlyBridge() {
