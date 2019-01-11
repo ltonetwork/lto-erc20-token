@@ -1,6 +1,7 @@
 pragma solidity ^0.4.24;
 
 import 'openzeppelin-solidity/contracts/ownership/Ownable.sol';
+import "./LTOTokenSale.sol";
 
 contract FakeWallet is Ownable {
 
@@ -12,5 +13,9 @@ contract FakeWallet is Ownable {
     if (!isOwner()) {
       revert();
     }
+  }
+
+  function withdrawFailed(LTOTokenSale tokenSale, address alternativeAddress) public {
+    tokenSale.withdrawFailed(alternativeAddress);
   }
 }

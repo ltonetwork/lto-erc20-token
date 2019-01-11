@@ -143,11 +143,20 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3]) => {
           assert(remainingEth.equals(convertDecimals(0.375, true)));
 
           const time = await this.tokenSale.clearStartTime();
-          //wating for clearStart
+          //waiting for clearStart
           await increaseTo(time.plus(2));
 
-          const tx = await this.tokenSale.clear(0, remainingEth);
-          assert.equal(tx.receipt.status, '0x1', "Will Success");
+          try {
+            const tx = await this.wallet.withdrawFailed(this.tokenSale.address, user1, {from: user1});
+          } catch (err) {
+            console.log(err);
+          }
+
+          [withdrew, recorded, failedWithdrew] = await this.tokenSale.purchaserMapping(this.wallet.address);
+          assert.equal(failedWithdrew, false);
+
+          const finalRemainingEth = await ethGetBalance(this.tokenSale.address);
+          assert(finalRemainingEth.equals(web3.toBigNumber(0)));
         });
       })
     })

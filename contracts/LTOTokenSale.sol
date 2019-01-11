@@ -244,6 +244,18 @@ contract LTOTokenSale is Ownable {
     }
   }
 
+  function withdrawFailed(address alternativeAddress) public onlyUserWithdrawalTime {
+    require(alternativeAddress != 0x0);
+    PurchaserInfo storage pi = purchaserMapping[msg.sender];
+
+    require(pi.recorded);
+    require(pi.failedWithdrew);
+    Purchase memory purchase = getSaleInfo(msg.sender);
+    if (alternativeAddress.send(purchase.received.sub(purchase.used))) {
+      pi.failedWithdrew = false;
+    }
+  }
+
   function addCapFreeAddress(address capFreeAddress) public onlyCapListAddress {
     require(capFreeAddress != address(0));
 
