@@ -3,13 +3,14 @@ pragma solidity ^0.4.24;
 import 'openzeppelin-solidity/contracts/ownership/Ownable.sol';
 import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/ERC20Burnable.sol';
+import "openzeppelin-solidity/contracts/utils/ReentrancyGuard.sol";
 
 
 /**
  * @title ERC20 LTO Network token
  * @dev see https://github.com/legalthings/tokensale
  */
-contract LTOTokenSale is Ownable {
+contract LTOTokenSale is Ownable, ReentrancyGuard {
 
   using SafeMath for uint256;
 
@@ -244,7 +245,7 @@ contract LTOTokenSale is Ownable {
     }
   }
 
-  function withdrawFailed(address alternativeAddress) public onlyUserWithdrawalTime {
+  function withdrawFailed(address alternativeAddress) public onlyUserWithdrawalTime nonReentrant {
     require(alternativeAddress != 0x0);
     PurchaserInfo storage pi = purchaserMapping[msg.sender];
 
