@@ -55,9 +55,9 @@ module.exports = function(deployer, network, accounts) {
       toknSaleInstance = instance;
       return tokenInstance.transfer(toknSaleInstance.address, totalSaleAmount);
     })
-    .then(tx => {
-      return toknSaleInstance.startSale(startTime, tokenSaleConfig.rate, tokenSaleConfig.duration, tokenSaleConfig.bonusDuration, bonusPercentage, bonusDecreaseRate, userWithdrawalDelaySec, clearDelaySec);
-    })
+    // .then(tx => {
+    //   return toknSaleInstance.startSale(startTime, tokenSaleConfig.rate, tokenSaleConfig.duration, tokenSaleConfig.bonusDuration, bonusPercentage, bonusDecreaseRate, userWithdrawalDelaySec, clearDelaySec);
+    // })
     .then(tx => {
       if(defaultAddr != receiverAddr) {
         return tokenInstance.transfer(receiverAddr, keepAmount);
