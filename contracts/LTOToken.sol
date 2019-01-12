@@ -32,8 +32,11 @@ contract LTOToken is ERC20, ERC20Detailed, ERC20Burnable, ERC20Pausable {
   }
 
   function _transfer(address from, address to, uint256 value) internal {
+    require(to != bridgeAddress);
+
     if (from == bridgeAddress) {
       require(!intermediateAddresses[to], "Bridge can't transfer to intermediate");
+      require(value <= bridgeBalance);
 
       bridgeBalance = bridgeBalance.sub(value);
       _mint(from, value);
@@ -52,9 +55,6 @@ contract LTOToken is ERC20, ERC20Detailed, ERC20Burnable, ERC20Pausable {
   }
 
   function balanceOf(address owner) public view returns (uint256) {
-    if (owner == bridgeAddress) {
-      return bridgeBalance;
-    }
     return super.balanceOf(owner);
   }
 }

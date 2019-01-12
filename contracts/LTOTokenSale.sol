@@ -3,13 +3,14 @@ pragma solidity ^0.4.24;
 import 'openzeppelin-solidity/contracts/ownership/Ownable.sol';
 import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
 import 'openzeppelin-solidity/contracts/token/ERC20/ERC20Burnable.sol';
+import "openzeppelin-solidity/contracts/utils/ReentrancyGuard.sol";
 
 
 /**
  * @title ERC20 LTO Network token
  * @dev see https://github.com/legalthings/tokensale
  */
-contract LTOTokenSale is Ownable {
+contract LTOTokenSale is Ownable, ReentrancyGuard {
 
   using SafeMath for uint256;
 
@@ -42,9 +43,9 @@ contract LTOTokenSale is Ownable {
   struct PurchaserInfo {
     bool withdrew;
     bool recorded;
-    bool failedWithdrew;
     uint256 received;     // Received ether
     uint256 accounted;    // Received ether + bonus
+    uint256 unreceived;   // Ether stuck because failed withdraw
   }
 
   struct Purchase {
@@ -214,9 +215,11 @@ contract LTOTokenSale is Ownable {
     if (purchase.used > 0 && purchase.tokens > 0) {
       receiverAddr.transfer(purchase.used);
       require(token.transfer(purchaser, purchase.tokens));
-      if (purchase.received.sub(purchase.used) > 0) {
-        if (!purchaser.send(purchase.received.sub(purchase.used))) {
-          pi.failedWithdrew = true;
+
+      uint256 unused = purchase.received.sub(purchase.used);
+      if (unused > 0) {
+        if (!purchaser.send(unused)) {
+          pi.unreceived = unused;
         }
       }
     } else {
@@ -241,6 +244,17 @@ contract LTOTokenSale is Ownable {
     }
     if (etherAmount > 0) {
       receiverAddr.transfer(etherAmount);
+    }
+  }
+
+  function withdrawFailed(address alternativeAddress) public onlyUserWithdrawalTime nonReentrant {
+    require(alternativeAddress != 0x0);
+    PurchaserInfo storage pi = purchaserMapping[msg.sender];
+
+    require(pi.recorded);
+    require(pi.unreceived > 0);
+    if (alternativeAddress.send(pi.unreceived)) {
+      pi.unreceived = 0;
     }
   }
 
