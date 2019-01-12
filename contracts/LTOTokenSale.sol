@@ -15,7 +15,7 @@ contract LTOTokenSale is Ownable, ReentrancyGuard {
   using SafeMath for uint256;
 
   uint256 constant minimumAmount = 0.1 ether;     // Minimum amount of ether to transfer
-  uint256 constant maximumCapAmount = 150 ether;  // Maximium amount of ether you can send with being caplisted
+  uint256 constant maximumCapAmount = 40 ether;  // Maximium amount of ether you can send with being caplisted
   uint256 constant ethDecimals = 1 ether;         // Amount used to divide ether with to calculate proportion
   uint256 constant ltoEthDiffDecimals = 10**10;   // Amount used to get the number of desired decimals, so  convert from 18 to 8
   uint256 constant bonusRateDivision = 10000;     // Amount used to divide the amount so the bonus can be calculated
@@ -272,5 +272,9 @@ contract LTOTokenSale is Ownable, ReentrancyGuard {
 
   function isCapFree(address capFreeAddress) internal view returns (bool) {
     return (capFreeAddresses[capFreeAddress]);
+  }
+
+  function currentBonus() public view returns(uint256) {
+    return bonusPercentage.sub(bonusDecreaseRate.mul(nrOfTransactions));
   }
 }
