@@ -127,8 +127,8 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3]) => {
           const balance = await this.token.balanceOf(user1);
           assert(balance.equals(expectedTokens));
 
-          [withdrew, recorded, failedWithdrew] = await this.tokenSale.purchaserMapping(this.wallet.address);
-          assert(failedWithdrew);
+          [withdrew, recorded, received, accounted, unreceived] = await this.tokenSale.purchaserMapping(this.wallet.address);
+          assert(unreceived.equals(convertDecimals(0.375, true)));
         } catch (e) {
           console.log(e);
         }
@@ -152,8 +152,8 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3]) => {
             console.log(err);
           }
 
-          [withdrew, recorded, failedWithdrew] = await this.tokenSale.purchaserMapping(this.wallet.address);
-          assert.equal(failedWithdrew, false);
+          [withdrew, recorded, received, accounted, unreceived] = await this.tokenSale.purchaserMapping(this.wallet.address);
+          assert(unreceived.equals(web3.toBigNumber(0)));
 
           const finalRemainingEth = await ethGetBalance(this.tokenSale.address);
           assert(finalRemainingEth.equals(web3.toBigNumber(0)));
