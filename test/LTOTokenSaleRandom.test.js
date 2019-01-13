@@ -66,8 +66,8 @@ async function randomSent(accounts, address, tokenSale) {
     sentData[account] = {sent: 0, accounted: 0};
   }
 
-  if (capFreeAccounts.indexOf(account) == -1 && sentData[account].sent + value > 150) {
-    calcValue = value - ((sentData[account].sent + value) - 150);
+  if (capFreeAccounts.indexOf(account) == -1 && sentData[account].sent + value > 40) {
+    calcValue = value - ((sentData[account].sent + value) - 40);
   }
   let total = 0;
   if (calcValue >= 0) {
