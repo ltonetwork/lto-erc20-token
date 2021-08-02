@@ -10,6 +10,7 @@ contract LTOToken is ERC20, ERC20Detailed, ERC20Burnable, ERC20Pausable {
 
   address public bridgeAddress;
   uint256 public bridgeBalance;
+  mapping (address => bool) public intermediatePending;
   mapping (address => bool) public intermediateAddresses;
 
   constructor(uint256 _initialSupply, address _bridgeAddress, uint256 _bridgeSupply)
@@ -28,7 +29,15 @@ contract LTOToken is ERC20, ERC20Detailed, ERC20Burnable, ERC20Pausable {
     require(_intermediate != address(0));
     require(balanceOf(_intermediate) == 0, "Intermediate balance should be 0");
 
-    intermediateAddresses[_intermediate] = true;
+    intermediatePending[_intermediate] = true;
+  }
+
+  function confirmIntermediateAddress() public {
+    require(intermediatePending[msg.sender], "Not a pending intermediate address");
+    require(balanceOf(msg.sender) == 0, "Intermediate balance should be 0");
+
+    intermediateAddresses[msg.sender] = true;
+    delete intermediatePending[msg.sender];
   }
 
   function _transfer(address from, address to, uint256 value) internal {
