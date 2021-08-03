@@ -49,16 +49,7 @@ contract('LTOToken', ([owner, bridge, intermediate, other]) => {
         it('should throw an error', async () => {
           try {
             await this.token.addIntermediateAddress(other);
-          } catch (e) {
-            assert.equal(e.receipt.status, '0x0', 'Will failure');
-          }
-        })
-      });
-
-      describe('when confirming an intermediate addresses that\'s not pending', () => {
-        it('should throw an error', async () => {
-          try {
-            await this.token.confirmIntermediateAddress({from: other});
+            assert.fail('Not errored')
           } catch (e) {
             assert.equal(e.receipt.status, '0x0', 'Will failure');
           }

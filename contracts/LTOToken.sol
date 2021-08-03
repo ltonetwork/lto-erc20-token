@@ -8,9 +8,12 @@ import "openzeppelin-solidity/contracts/token/ERC20/ERC20Pausable.sol";
 
 contract LTOToken is ERC20, ERC20Detailed, ERC20Burnable, ERC20Pausable {
 
+  uint8 constant PENDING_BRIDGE = 1;
+  uint8 constant PENDING_CONFIRM = 2;
+
   address public bridgeAddress;
   uint256 public bridgeBalance;
-  mapping (address => bool) public intermediatePending;
+  mapping (address => uint8) public intermediatePending;
   mapping (address => bool) public intermediateAddresses;
 
   constructor(uint256 _initialSupply, address _bridgeAddress, uint256 _bridgeSupply)
@@ -29,15 +32,27 @@ contract LTOToken is ERC20, ERC20Detailed, ERC20Burnable, ERC20Pausable {
     require(_intermediate != address(0));
     require(balanceOf(_intermediate) == 0, "Intermediate balance should be 0");
 
-    intermediatePending[_intermediate] = true;
+    if (intermediatePending[_intermediate] == PENDING_BRIDGE) {
+      _addIntermediate(_intermediate);
+    } else {
+      intermediatePending[_intermediate] = PENDING_CONFIRM;
+    }
   }
 
   function confirmIntermediateAddress() public {
-    require(intermediatePending[msg.sender], "Not a pending intermediate address");
+    require(msg.sender != address(0));
     require(balanceOf(msg.sender) == 0, "Intermediate balance should be 0");
 
-    intermediateAddresses[msg.sender] = true;
-    delete intermediatePending[msg.sender];
+    if (intermediatePending[msg.sender] == PENDING_CONFIRM) {
+      _addIntermediate(msg.sender);
+    } else {
+      intermediatePending[msg.sender] = PENDING_BRIDGE;
+    }
+  }
+
+  function _addIntermediate(address _intermediate) internal {
+    intermediateAddresses[_intermediate] = true;
+    delete intermediatePending[_intermediate];
   }
 
   function _transfer(address from, address to, uint256 value) internal {
