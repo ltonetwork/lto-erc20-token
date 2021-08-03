@@ -3,6 +3,7 @@ var TokenSale = artifacts.require("./LTOTokenSale.sol");
 var config = require("../config.json");
 var tokenConfig = config.token;
 var tokenSaleConfig = config.tokenSale;
+var balanceCopyConfig = config.balanceCopy;
 
 function convertDecimals(number, decimals) {
   if (!decimals) {
@@ -18,9 +19,7 @@ function getReceiverAddr(defaultAddr) {
   return defaultAddr;
 }
 
-
-module.exports = function(deployer, network, accounts) {
-
+function deployForTokenSale(deployer, network, accounts) {
   var defaultAddr = accounts[0];
   var receiverAddr = getReceiverAddr(defaultAddr);
   var capListAddr = tokenSaleConfig.capListAddr || accounts[0];
@@ -37,10 +36,7 @@ module.exports = function(deployer, network, accounts) {
   var bonusPercentage = tokenSaleConfig.bonusPercentage;
   var bonusDecreaseRate = tokenSaleConfig.bonusDecreaseRate;
 
-  return deployer.deploy(Token,
-    totalSupply,
-    tokenConfig.bridgeAddr,
-    bridgeSupply)
+  return deployer.deploy(Token, tokenConfig.bridgeAddr, bridgeSupply)
     .then(function () {
       return deployer.deploy(TokenSale, receiverAddr, Token.address, totalSaleAmount, capListAddr);
     })
@@ -53,14 +49,28 @@ module.exports = function(deployer, network, accounts) {
     })
     .then(instance => {
       toknSaleInstance = instance;
-      return tokenInstance.transfer(toknSaleInstance.address, totalSaleAmount);
     })
-    .then(tx => {
+    .then(_ => tokenInstance.mint(defaultAddr, totalSupply))
+    .then(_ => tokenInstance.unpause())
+    .then(_ => tokenInstance.transfer(toknSaleInstance.address, totalSaleAmount))
+    .then(_ => {
       return toknSaleInstance.startSale(startTime, tokenSaleConfig.rate, tokenSaleConfig.duration, tokenSaleConfig.bonusDuration, bonusPercentage, bonusDecreaseRate, userWithdrawalDelaySec, clearDelaySec);
     })
-    .then(tx => {
+    .then(_ => {
       if(defaultAddr != receiverAddr) {
         return tokenInstance.transfer(receiverAddr, keepAmount);
       }
     });
+}
+
+function deployForBalanceCopy(deployer, network, accounts) {
+  throw 'Not implemented yet';
+}
+
+module.exports = function(deployer, network, accounts) {
+  if (balanceCopyConfig.oldToken) {
+    return deployForBalanceCopy(deployer, network, accounts)
+  } else {
+    return deployForTokenSale(deployer, network, accounts)
+  }
 };

@@ -7,6 +7,8 @@
         "bridgeAddr": "0xb950BE3e471B3A6cf3a45Fb341F2606a0B147B8F",
         "bridgeSupply": 450000000
     },
+    "balanceCopy": {
+    },
     "tokenSale":{
         "receiverAddr" : null,
         "capListAddr": null,
