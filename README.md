@@ -73,7 +73,9 @@ npm install
 
 # Configuration
 
-Edit `config.json`
+Edit `config.json`.
+
+_The configuration should either have a `tokenSale` entry or a `balanceCopy` entry, but not both._
 
 ### token
 
