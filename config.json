@@ -1,5 +1,5 @@
 {
-    "token":{
+    "token": {
         "totalSupply" : 50000000,
         "name" : "LTO Network Token",
         "symbol" : "LTO",
@@ -7,9 +7,7 @@
         "bridgeAddr": "0xb950BE3e471B3A6cf3a45Fb341F2606a0B147B8F",
         "bridgeSupply": 450000000
     },
-    "balanceCopy": {
-    },
-    "tokenSale":{
+    "tokenSale": {
         "receiverAddr" : null,
         "capListAddr": null,
         "totalSaleAmount" : 50000000,
@@ -21,5 +19,7 @@
         "startTime" : 1545044400,
         "userWithdrawalDelaySec" : 86400,
         "clearDelaySec" : 604800
+    },
+    "balanceCopy": {
     }
 }
