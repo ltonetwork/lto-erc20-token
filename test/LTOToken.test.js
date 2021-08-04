@@ -8,7 +8,7 @@ contract('LTOToken', ([owner, bridge, intermediate, other]) => {
   describe('when creating a token', () => {
     it('should throw an error if no bridge address is given', async () => {
       try {
-        const token = await LTOToken.new(constants.ZERO_ADDRESS, 50);
+        await LTOToken.new(constants.ZERO_ADDRESS, 50);
       } catch (ex) {
         return;
       }
@@ -68,10 +68,11 @@ contract('LTOToken', ([owner, bridge, intermediate, other]) => {
       it('should not be possible to transfer while pre-minting', async() => {
         try {
           await this.token.transfer(other, 5, {from: owner});
-          assert.fail('Not errored');
         } catch (e) {
           assert.equal(e.receipt.status, '0x0', 'Will failure');
+          return;
         }
+        assert.fail('Not errored');
       });
     });
 

@@ -9,8 +9,8 @@ import './ERC20PreMint.sol';
  * @title Get the balance of an ERC20 contract to mint tokens for a pre-mintable ERC20 contract
  **/
 contract BalanceCopier is Ownable {
-    ERC20Pausable oldToken;
-    ERC20PreMint newToken;
+    ERC20Pausable public oldToken;
+    ERC20PreMint public newToken;
 
     mapping (address => bool) copied;
 
@@ -26,15 +26,24 @@ contract BalanceCopier is Ownable {
     }
 
     function copy(address _holder) public whenBothPaused {
-        require(!copied[_holder], 'Already copied balance of this account');
-        _copyBalance(_holder);
+        require(!copied[_holder], 'Already copied balance of this holder');
+
+        uint256 balance = oldToken.balanceOf(_holder);
+        require(balance > 0, 'Zero balance');
+
+        _mint(_holder, balance);
     }
 
     function copyAll(address[] _holders) public whenBothPaused {
         uint length = _holders.length;
 
         for (uint i=0; i < length; i++) if (!copied[_holders[i]]) {
-            _copyBalance(_holders[i]);
+            address holder = _holders[i];
+            uint256 balance = oldToken.balanceOf(holder);
+
+            if (balance != 0) {
+                _mint(holder, balance);
+            }
         }
     }
 
@@ -43,10 +52,8 @@ contract BalanceCopier is Ownable {
         newToken.renouncePauser();
     }
 
-    function _copyBalance(address _holder) internal {
-        uint256 balance = oldToken.balanceOf(_holder);
-        newToken.mint(_holder, balance);
-
+    function _mint(address _holder, uint256 _balance) internal {
+        newToken.mint(_holder, _balance);
         copied[_holder] = true;
     }
 }
