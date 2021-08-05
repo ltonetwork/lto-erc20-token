@@ -21,6 +21,7 @@ function convertDecimals(number, ether) {
 contract('LTOTokenSale', ([owner, bridge, user1, user2, user3]) => {
   let startTime;
   const rate = 400;
+  const maxSupply = convertDecimals(15000);
   const tokenSupply = convertDecimals(10000);
   const totalSaleAmount = convertDecimals(1000);
 
@@ -31,7 +32,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3]) => {
   before(async () => {
     startTime = (await latest()) + 5;
 
-    this.token = await LTOToken.new(bridge, 50);
+    this.token = await LTOToken.new(bridge, maxSupply);
     await this.token.mint(owner, tokenSupply);
     await this.token.unpause();
 

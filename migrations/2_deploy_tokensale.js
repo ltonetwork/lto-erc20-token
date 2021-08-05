@@ -24,7 +24,7 @@ module.exports = function(deployer, network, accounts) {
   var defaultAddr = accounts[0];
   var receiverAddr = getReceiverAddr(defaultAddr);
   var capListAddr = tokenSaleConfig.capListAddr || accounts[0];
-  const bridgeSupply = convertDecimals(tokenConfig.bridgeSupply);
+  const maxSupply = convertDecimals(tokenConfig.maxSupply);
   var totalSaleAmount = convertDecimals(tokenSaleConfig.totalSaleAmount);
   var totalSupply = convertDecimals(tokenConfig.totalSupply);
   var startTime = web3.toBigNumber(tokenSaleConfig.startTime);
@@ -37,7 +37,7 @@ module.exports = function(deployer, network, accounts) {
   var bonusPercentage = tokenSaleConfig.bonusPercentage;
   var bonusDecreaseRate = tokenSaleConfig.bonusDecreaseRate;
 
-  return deployer.deploy(Token, tokenConfig.bridgeAddr, bridgeSupply)
+  return deployer.deploy(Token, tokenConfig.bridgeAddr, maxSupply)
       .then(function () {
         return deployer.deploy(TokenSale, receiverAddr, Token.address, totalSaleAmount, capListAddr);
       })

@@ -4,7 +4,7 @@ const BalanceCopier = artifacts.require('./BalanceCopier.sol');
 contract('BalanceCopier', ([owner, bridge, holder1, holder2, holder3, noHolder]) => {
     context('created old token', () => {
         before(async () => {
-            this.oldToken = await LTOToken.new(bridge, 50);
+            this.oldToken = await LTOToken.new(bridge, 100);
 
             await this.oldToken.mint(holder1, 32);
             await this.oldToken.mint(holder2, 20);
@@ -16,29 +16,32 @@ contract('BalanceCopier', ([owner, bridge, holder1, holder2, holder3, noHolder])
 
         it('should have the correct balances', async () => {
             const balance1 = await this.oldToken.balanceOf(holder1);
-            assert(balance1.equals(10));
+            assert.equal(balance1.toNumber(), 10);
 
             const balance2 = await this.oldToken.balanceOf(holder2);
-            assert(balance2.equals(20));
+            assert.equal(balance2.toNumber(), 20);
 
             const balance3 = await this.oldToken.balanceOf(holder3);
-            assert(balance3.equals(22));
+            assert.equal(balance3.toNumber(), 22);
         });
 
-        it('should have the correct total supply', async () => {
+        it('should have the correct total supply and bridge supply', async () => {
             const totalSupply = await this.oldToken.totalSupply();
-            assert(totalSupply.equals(52));
+            assert.equal(totalSupply.toNumber(), 52);
+
+            const bridgeBalance = await this.oldToken.bridgeBalance();
+            assert.equal(bridgeBalance.toNumber(), 48);
         });
     });
 
     context('created new token', () => {
         before(async () => {
-            this.newToken = await LTOToken.new(bridge, 50);
+            this.newToken = await LTOToken.new(bridge, 100);
         });
 
         it('should have no supply', async () => {
             const totalSupply = await this.newToken.totalSupply();
-            assert(totalSupply.equals(0));
+            assert.equal(totalSupply.toNumber(), 0);
         });
     });
 
@@ -79,7 +82,7 @@ contract('BalanceCopier', ([owner, bridge, holder1, holder2, holder3, noHolder])
 
             it('should have the correct balance for that account', async () => {
                 const balance1 = await this.newToken.balanceOf(holder1);
-                assert(balance1.equals(10));
+                assert.equal(balance1.toNumber(), 10);
             });
 
             it('should fail to copy the same account twice', async () => {
@@ -110,16 +113,24 @@ contract('BalanceCopier', ([owner, bridge, holder1, holder2, holder3, noHolder])
 
             it('should have the correct balances', async () => {
                 const balance1 = await this.newToken.balanceOf(holder1);
-                assert(balance1.equals(10));
+                assert.equal(balance1.toNumber(), 10);
 
                 const balance2 = await this.newToken.balanceOf(holder2);
-                assert(balance2.equals(20));
+                assert.equal(balance2.toNumber(), 20);
 
                 const balance3 = await this.newToken.balanceOf(holder3);
-                assert(balance3.equals(22));
+                assert.equal(balance3.toNumber(), 22);
 
                 const balanceZero = await this.newToken.balanceOf(noHolder);
-                assert(balanceZero.equals(0));
+                assert.equal(balanceZero.toNumber(), 0);
+            });
+
+            it('should have the total and bridge supply', async () => {
+                const totalSupply = await this.newToken.totalSupply();
+                assert.equal(totalSupply.toNumber(), 52);
+
+                const bridgeBalance = await this.newToken.bridgeBalance();
+                assert.equal(bridgeBalance.toNumber(), 48);
             });
         });
     });

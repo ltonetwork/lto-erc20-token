@@ -15,11 +15,11 @@ module.exports = function(deployer, network, accounts) {
   if (!balanceCopyConfig) return;
 
   const oldToken = balanceCopyConfig.oldToken;
-  const bridgeSupply = convertDecimals(tokenConfig.bridgeSupply);
+  const maxSupply = convertDecimals(tokenConfig.maxSupply);
   var tokenInstance = null;
   var balanceCopierInstance = null;
 
-  return deployer.deploy(Token, tokenConfig.bridgeAddr, bridgeSupply)
+  return deployer.deploy(Token, tokenConfig.bridgeAddr, maxSupply)
       .then(() => {
         return deployer.deploy(BalanceCopier, oldToken, Token.address);
       })

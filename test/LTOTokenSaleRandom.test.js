@@ -97,7 +97,7 @@ contract('LTOTokenSale', ([owner, bridge, ...accounts]) => {
   const rate = tokenSaleConfig.rate;
   const tokenSupply = convertDecimals(tokenConfig.totalSupply);
   const totalSaleAmount = convertDecimals(tokenSaleConfig.totalSaleAmount);
-  const bridgeSupply = convertDecimals(tokenConfig.bridgeSupply);
+  const maxSupply = convertDecimals(tokenConfig.maxSupply);
   const userWithdrawalDelaySec = new BigNumber(tokenSaleConfig.userWithdrawalDelaySec);
   const clearDelaySec = new BigNumber(tokenSaleConfig.clearDelaySec);
   const bonusDuration = tokenSaleConfig.bonusDuration;
@@ -106,7 +106,7 @@ contract('LTOTokenSale', ([owner, bridge, ...accounts]) => {
   before(async () => {
     const startTime = (await latest()) + 2;
 
-    this.token = await LTOToken.new(bridge, bridgeSupply);
+    this.token = await LTOToken.new(bridge, maxSupply);
     await this.token.mint(owner, tokenSupply);
     await this.token.unpause();
 

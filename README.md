@@ -79,9 +79,9 @@ _The configuration should either have a `tokenSale` entry or a `balanceCopy` ent
 
 ### token
 
-The `token` entry has properties for the LTOToken smart contract. There are 500 million LTO tokens minted during
-genesis of LTO Network. `totalSupply` is the amount of ERC20 tokens minted and used for the token sale. `bridgeSupply`
-should always be `500_000_000 - totalSupply`.
+The `token` entry has properties for the LTOToken smart contract. `maxSupply` should be 500 million; the number of LTO
+tokens minted during genesis of LTO Network. `totalSupply` is the amount of ERC20 tokens minted and used for the token
+sale.
 
 ### tokenSale
 

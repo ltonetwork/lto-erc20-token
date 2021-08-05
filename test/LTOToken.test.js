@@ -8,7 +8,7 @@ contract('LTOToken', ([owner, bridge, intermediate, other]) => {
   describe('when creating a token', () => {
     it('should throw an error if no bridge address is given', async () => {
       try {
-        await LTOToken.new(constants.ZERO_ADDRESS, 50);
+        await LTOToken.new(constants.ZERO_ADDRESS, 100);
       } catch (ex) {
         return;
       }
@@ -18,7 +18,7 @@ contract('LTOToken', ([owner, bridge, intermediate, other]) => {
 
   context('created token', () => {
     before(async () => {
-      this.token = await LTOToken.new(bridge, 50);
+      this.token = await LTOToken.new(bridge, 100);
     });
 
     describe('when creating a new token', () => {
@@ -30,15 +30,15 @@ contract('LTOToken', ([owner, bridge, intermediate, other]) => {
         assert.equal(symbol, tokenConfig.symbol);
 
         const decimals = await this.token.decimals();
-        assert(decimals.equals(tokenConfig.decimals));
+        assert.equal(decimals.toNumber(), tokenConfig.decimals);
       });
 
       it('should have correct token supply', async () => {
         const totalSupply = await this.token.totalSupply();
-        assert(totalSupply.equals(0));
+        assert.equal(totalSupply.toNumber(), 0);
 
-        const bridgeSupply = await this.token.bridgeBalance();
-        assert(bridgeSupply.equals(50));
+        const bridgeBalance = await this.token.bridgeBalance();
+        assert.equal(bridgeBalance.toNumber(), 100);
       });
 
       it('should be paused', async () => {
@@ -60,6 +60,9 @@ contract('LTOToken', ([owner, bridge, intermediate, other]) => {
       it('should result in minted tokens', async () => {
         const totalSupply = await this.token.totalSupply();
         assert.equal(totalSupply.toNumber(), 50);
+
+        const bridgeBalance = await this.token.bridgeBalance();
+        assert.equal(bridgeBalance.toNumber(), 50);
 
         const ownerBalance = await this.token.balanceOf(owner);
         assert.equal(ownerBalance.toNumber(), 50);

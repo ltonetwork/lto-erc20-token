@@ -5,7 +5,7 @@
         "symbol" : "LTO",
         "decimals" : 8,
         "bridgeAddr": "0xb950BE3e471B3A6cf3a45Fb341F2606a0B147B8F",
-        "bridgeSupply": 450000000
+        "maxSupply": 500000000
     },
     "tokenSale": {
         "receiverAddr" : null,
