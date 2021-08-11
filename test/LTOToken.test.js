@@ -18,6 +18,9 @@ contract('LTOToken', ([owner, bridge, intermediate, other]) => {
   context('created token', () => {
     before(async () => {
       this.token = await LTOToken.new(50, bridge, 50);
+
+      await this.token.transfer(intermediate, 2);
+      await this.token.transfer(other, 2);
     });
 
     describe('info', () => {
@@ -68,6 +71,17 @@ contract('LTOToken', ([owner, bridge, intermediate, other]) => {
           assert.equal(tx.receipt.status, '0x1', 'failure');
         });
 
+        it('should have the balance burned', async() => {
+          const balance = await this.token.balanceOf(intermediate);
+          assert.equal(balance, 0);
+
+          const bridgeBalance = await this.token.bridgeBalance();
+          assert.equal(bridgeBalance.toNumber(), 52);
+
+          const totalSupply = await this.token.totalSupply();
+          assert.equal(totalSupply.toNumber(), 48);
+        });
+
         describe('when transfering to an intermediate address', async () => {
 
           it('should forward the funds to the bridge address', async () => {
@@ -79,14 +93,14 @@ contract('LTOToken', ([owner, bridge, intermediate, other]) => {
             assert.strictEqual(tx.logs[0].args.from, owner);
             assert.strictEqual(tx.logs[0].args.to, intermediate);
 
-            const otherBalance = await this.token.balanceOf(intermediate);
-            assert.equal(otherBalance.toNumber(), 0);
+            const balance = await this.token.balanceOf(intermediate);
+            assert.equal(balance.toNumber(), 0);
 
             const bridgeBalance = await this.token.bridgeBalance();
-            assert.equal(bridgeBalance.toNumber(), 55);
+            assert.equal(bridgeBalance.toNumber(), 57);
 
             const totalSupply = await this.token.totalSupply();
-            assert.equal(totalSupply.toNumber(), 45);
+            assert.equal(totalSupply.toNumber(), 43);
           });
         });
       });
@@ -96,6 +110,11 @@ contract('LTOToken', ([owner, bridge, intermediate, other]) => {
         it('should be pending', async () => {
           const tx = await this.token.addIntermediateAddress(other, {from: bridge});
           assert.equal(tx.receipt.status, '0x1', 'failure');
+        });
+
+        it('should NOT have the balance burned', async() => {
+          const balance = await this.token.balanceOf(other);
+          assert.equal(balance, 2);
         });
 
         describe('when transfering to an unconfirmed intermediate address', async () => {
@@ -111,8 +130,8 @@ contract('LTOToken', ([owner, bridge, intermediate, other]) => {
             assert.strictEqual(tx.logs[0].args.from, owner);
             assert.strictEqual(tx.logs[0].args.to, other);
 
-            const otherBalance = await this.token.balanceOf(other);
-            assert.equal(otherBalance.toNumber(), 5);
+            const balance = await this.token.balanceOf(other);
+            assert.equal(balance.toNumber(), 7);
 
             const bridgeBalance = await this.token.bridgeBalance();
             assert.equal(bridgeBalance.toNumber(), bridgeBalanceOrg.toNumber());

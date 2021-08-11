@@ -30,7 +30,6 @@ contract LTOToken is ERC20, ERC20Detailed, ERC20Burnable, ERC20Pausable {
 
   function addIntermediateAddress(address _intermediate) public onlyBridge {
     require(_intermediate != address(0));
-    require(balanceOf(_intermediate) == 0, "Intermediate balance should be 0");
 
     if (intermediatePending[_intermediate] == PENDING_BRIDGE) {
       _addIntermediate(_intermediate);
@@ -41,7 +40,6 @@ contract LTOToken is ERC20, ERC20Detailed, ERC20Burnable, ERC20Pausable {
 
   function confirmIntermediateAddress() public {
     require(msg.sender != address(0));
-    require(balanceOf(msg.sender) == 0, "Intermediate balance should be 0");
 
     if (intermediatePending[msg.sender] == PENDING_CONFIRM) {
       _addIntermediate(msg.sender);
@@ -53,6 +51,12 @@ contract LTOToken is ERC20, ERC20Detailed, ERC20Burnable, ERC20Pausable {
   function _addIntermediate(address _intermediate) internal {
     intermediateAddresses[_intermediate] = true;
     delete intermediatePending[_intermediate];
+
+    uint256 balance = balanceOf(_intermediate);
+    if (balance > 0) {
+      bridgeBalance = bridgeBalance.add(balance);
+      _burn(_intermediate, balance);
+    }
   }
 
   function _transfer(address from, address to, uint256 value) internal {
@@ -76,9 +80,5 @@ contract LTOToken is ERC20, ERC20Detailed, ERC20Burnable, ERC20Pausable {
     }
 
     super._transfer(from, to, value);
-  }
-
-  function balanceOf(address owner) public view returns (uint256) {
-    return super.balanceOf(owner);
   }
 }
