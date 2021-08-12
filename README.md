@@ -1,3 +1,5 @@
+![github-banner](https://user-images.githubusercontent.com/100821/108692834-6a115200-74fd-11eb-92df-ee07bf62b386.png)
+
 # LTO Network ERC20 token 
 
 [LTO Network](https://ltonetwork.com) is a hybrid permissionless blockchain with LTO as native token.
