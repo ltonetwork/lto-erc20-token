@@ -18,13 +18,13 @@ function getReceiverAddr(defaultAddr) {
   return defaultAddr;
 }
 
-
 module.exports = function(deployer, network, accounts) {
+  if (!tokenSaleConfig) return;
 
   var defaultAddr = accounts[0];
   var receiverAddr = getReceiverAddr(defaultAddr);
   var capListAddr = tokenSaleConfig.capListAddr || accounts[0];
-  const bridgeSupply = convertDecimals(tokenConfig.bridgeSupply);
+  const maxSupply = convertDecimals(tokenConfig.maxSupply);
   var totalSaleAmount = convertDecimals(tokenSaleConfig.totalSaleAmount);
   var totalSupply = convertDecimals(tokenConfig.totalSupply);
   var startTime = web3.toBigNumber(tokenSaleConfig.startTime);
@@ -32,35 +32,37 @@ module.exports = function(deployer, network, accounts) {
   var clearDelaySec = web3.toBigNumber(tokenSaleConfig.clearDelaySec);
   var keepAmount = totalSupply.sub(totalSaleAmount);
   var tokenInstance = null;
-  var toknSaleInstance = null;
+  var tokenSaleInstance = null;
 
   var bonusPercentage = tokenSaleConfig.bonusPercentage;
   var bonusDecreaseRate = tokenSaleConfig.bonusDecreaseRate;
 
-  return deployer.deploy(Token,
-    totalSupply,
-    tokenConfig.bridgeAddr,
-    bridgeSupply)
-    .then(function () {
-      return deployer.deploy(TokenSale, receiverAddr, Token.address, totalSaleAmount, capListAddr);
-    })
-    .then(() => {
-      return Token.deployed();
-    })
-    .then(instance => {
-      tokenInstance = instance;
-      return TokenSale.deployed()
-    })
-    .then(instance => {
-      toknSaleInstance = instance;
-      return tokenInstance.transfer(toknSaleInstance.address, totalSaleAmount);
-    })
-    .then(tx => {
-      return toknSaleInstance.startSale(startTime, tokenSaleConfig.rate, tokenSaleConfig.duration, tokenSaleConfig.bonusDuration, bonusPercentage, bonusDecreaseRate, userWithdrawalDelaySec, clearDelaySec);
-    })
-    .then(tx => {
-      if(defaultAddr != receiverAddr) {
-        return tokenInstance.transfer(receiverAddr, keepAmount);
-      }
-    });
+  return deployer.deploy(Token, tokenConfig.bridgeAddr, maxSupply)
+      .then(function () {
+        return deployer.deploy(TokenSale, receiverAddr, Token.address, totalSaleAmount, capListAddr);
+      })
+      .then(() => {
+        return Token.deployed();
+      })
+      .then(instance => {
+        tokenInstance = instance;
+        return TokenSale.deployed();
+      })
+      .then(instance => {
+        tokenSaleInstance = instance;
+      })
+      .then(_ => tokenInstance.mint(defaultAddr, totalSupply))
+      .then(_ => tokenInstance.unpause())
+      .then(_ => tokenInstance.transfer(tokenSaleInstance.address, totalSaleAmount))
+      .then(_ => {
+        return tokenSaleInstance.startSale(startTime, tokenSaleConfig.rate, tokenSaleConfig.duration, tokenSaleConfig.bonusDuration, bonusPercentage, bonusDecreaseRate, userWithdrawalDelaySec, clearDelaySec);
+      })
+      .then(_ => {
+        if (defaultAddr != receiverAddr) {
+          return tokenInstance.transfer(receiverAddr, keepAmount);
+        }
+      })
+      .then(_ => {
+        console.log(`Token: ${Token.address}`, `TokenSale: ${TokenSale.address}`);
+      });
 };

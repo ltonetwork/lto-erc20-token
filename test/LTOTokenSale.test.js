@@ -35,6 +35,7 @@ function getReceiverAddr(defaultAddr) {
 
 contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4, user5, user6]) => {
   const rate = tokenSaleConfig.rate;
+  const maxSupply = convertDecimals(tokenConfig.maxSupply);
   const tokenSupply = convertDecimals(tokenConfig.totalSupply);
   const totalSaleAmount = convertDecimals(tokenSaleConfig.totalSaleAmount);
   const keepAmount = tokenSupply.sub(totalSaleAmount);
@@ -50,7 +51,10 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4, user5, use
 
   contract('with token', () => {
     before(async () => {
-      this.token = await LTOToken.new(tokenSupply, bridge, 50);
+      this.token = await LTOToken.new(bridge, maxSupply);
+
+      await this.token.mint(owner, tokenSupply);
+      await this.token.unpause();
     });
 
     it('requires a token supply', () => {

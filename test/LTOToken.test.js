@@ -8,46 +8,105 @@ contract('LTOToken', ([owner, bridge, intermediate, other]) => {
   describe('when creating a token', () => {
     it('should throw an error if no bridge address is given', async () => {
       try {
-        const token = await LTOToken.new(50, constants.ZERO_ADDRESS, 50);
+        await LTOToken.new(constants.ZERO_ADDRESS, 100);
       } catch (ex) {
-        assert.equal(ex.receipt.status, '0x0', 'Will failure');
+        return;
       }
+      assert.fail('No error thrown');
     });
   });
 
   context('created token', () => {
     before(async () => {
-      this.token = await LTOToken.new(50, bridge, 50);
-
-      await this.token.transfer(intermediate, 2);
-      await this.token.transfer(other, 2);
+      this.token = await LTOToken.new(bridge, 100);
     });
 
-    describe('info', () => {
-      describe('when creating a new token', () => {
-        it('should have correct token info', async () => {
-          const name = await this.token.name();
-          assert.equal(name, tokenConfig.name);
+    describe('when creating a new token', () => {
+      it('should have correct token info', async () => {
+        const name = await this.token.name();
+        assert.equal(name, tokenConfig.name);
 
-          const symbol = await this.token.symbol();
-          assert.equal(symbol, tokenConfig.symbol);
+        const symbol = await this.token.symbol();
+        assert.equal(symbol, tokenConfig.symbol);
 
-          const decimals = await this.token.decimals();
-          assert(decimals.equals(tokenConfig.decimals));
+        const decimals = await this.token.decimals();
+        assert.equal(decimals.toNumber(), tokenConfig.decimals);
+      });
 
-          const totalSupply = await this.token.totalSupply();
-          assert(totalSupply.equals(50));
+      it('should have correct token supply', async () => {
+        const totalSupply = await this.token.totalSupply();
+        assert.equal(totalSupply.toNumber(), 0);
 
-          const bridgeSupply = await this.token.bridgeBalance();
-          assert(bridgeSupply.equals(50));
+        const bridgeBalance = await this.token.bridgeBalance();
+        assert.equal(bridgeBalance.toNumber(), 100);
+      });
 
-          assert.equal(await this.token.paused(), false);
-        });
+      it('should be paused', async () => {
+        const paused = await this.token.paused();
+        assert.equal(true, paused);
+      });
+
+      it('should be ready to be pre-minted', async () => {
+        const minted = await this.token.minted();
+        assert.equal(false, minted);
       });
     });
 
-    describe('bridge', () => {
+    describe('pre-minting tokens', () => {
+      before(async () => {
+        await this.token.mint(owner, 50);
+      });
 
+      it('should result in minted tokens', async () => {
+        const totalSupply = await this.token.totalSupply();
+        assert.equal(totalSupply.toNumber(), 50);
+
+        const bridgeBalance = await this.token.bridgeBalance();
+        assert.equal(bridgeBalance.toNumber(), 50);
+
+        const ownerBalance = await this.token.balanceOf(owner);
+        assert.equal(ownerBalance.toNumber(), 50);
+      });
+
+      it('should not be possible to transfer while pre-minting', async() => {
+        try {
+          await this.token.transfer(other, 5, {from: owner});
+        } catch (e) {
+          assert.equal(e.receipt.status, '0x0', 'Will failure');
+          return;
+        }
+        assert.fail('Not errored');
+      });
+    });
+
+    describe('after unpausing the contract', () => {
+      before(async () => {
+        await this.token.unpause();
+      });
+
+      it('should be unpaused', async () => {
+        const paused = await this.token.paused();
+        assert.equal(false, paused);
+      });
+
+      it('should be not ready to be pre-minted', async () => {
+        const minted = await this.token.minted();
+        assert.equal(true, minted);
+      });
+
+      it('should be possible to transfer', async () => {
+        await this.token.transfer(intermediate, 2);
+        await this.token.transfer(other, 2);
+
+        const balanceIntermediate = await this.token.balanceOf(intermediate);
+        assert.equal(balanceIntermediate, 2);
+
+        const balanceOther = await this.token.balanceOf(other);
+        assert.equal(balanceOther, 2);
+      })
+    });
+
+    describe('bridge', () => {
       describe('when adding an intermediate addresses from a non bridge address', () => {
         it('should throw an error', async () => {
           try {
