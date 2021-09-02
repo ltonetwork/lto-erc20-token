@@ -67,6 +67,7 @@ contract LTOToken is ERC20, ERC20Detailed, ERC20Burnable, ERC20Pausable, ERC20Pr
 
   function _transfer(address from, address to, uint256 value) internal {
     require(to != bridgeAddress);
+    require(to != address(this));
 
     if (from == bridgeAddress) {
       require(!intermediateAddresses[to], "Bridge can't transfer to intermediate");
