@@ -25,7 +25,7 @@ contract BalanceCopier is Ownable {
         _;
     }
 
-    function copy(address _holder) public whenBothPaused {
+    function copy(address _holder) external whenBothPaused {
         require(!copied[_holder], 'Already copied balance of this holder');
 
         uint256 balance = oldToken.balanceOf(_holder);
@@ -34,7 +34,7 @@ contract BalanceCopier is Ownable {
         _mint(_holder, balance);
     }
 
-    function copyAll(address[] _holders) public whenBothPaused {
+    function copyAll(address[] _holders) external whenBothPaused {
         uint length = _holders.length;
 
         for (uint i=0; i < length; i++) if (!copied[_holders[i]]) {
@@ -47,7 +47,7 @@ contract BalanceCopier is Ownable {
         }
     }
 
-    function done() public onlyOwner {
+    function done() external onlyOwner {
         newToken.unpause();
         newToken.renouncePauser();
     }

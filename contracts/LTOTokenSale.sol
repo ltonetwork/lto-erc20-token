@@ -121,7 +121,7 @@ contract LTOTokenSale is Ownable, ReentrancyGuard {
 
   function startSale(uint256 _startTime, uint256 _rate, uint256 duration,
     uint256 bonusDuration, uint256 _bonusPercentage, uint256 _bonusDecreaseRate,
-    uint256 userWithdrawalDelaySec, uint256 clearDelaySec) public onlyOwner {
+    uint256 userWithdrawalDelaySec, uint256 clearDelaySec) external onlyOwner {
     require(endTime == 0);
     require(_startTime > 0);
     require(_rate > 0);
@@ -138,7 +138,7 @@ contract LTOTokenSale is Ownable, ReentrancyGuard {
     clearStartTime = endTime.add(clearDelaySec);
   }
 
-  function getPurchaserCount() public view returns(uint256) {
+  function getPurchaserCount() external view returns(uint256) {
     return purchaserList.length;
   }
 
@@ -161,12 +161,12 @@ contract LTOTokenSale is Ownable, ReentrancyGuard {
     );
   }
 
-  function getPublicSaleInfo(address purchaser) public view returns (uint256, uint256, uint256) {
+  function getPublicSaleInfo(address purchaser) external view returns (uint256, uint256, uint256) {
     Purchase memory purchase = getSaleInfo(purchaser);
     return (purchase.received, purchase.used, purchase.tokens);
   }
 
-  function () payable public {
+  function () payable external {
     buy();
   }
 
@@ -228,7 +228,7 @@ contract LTOTokenSale is Ownable, ReentrancyGuard {
     return;
   }
 
-  function withdrawal() public onlyUserWithdrawalTime {
+  function withdrawal() external onlyUserWithdrawalTime {
     _withdrawal(msg.sender);
   }
 
@@ -238,7 +238,7 @@ contract LTOTokenSale is Ownable, ReentrancyGuard {
     }
   }
 
-  function clear(uint256 tokenAmount, uint256 etherAmount) public purchasersAllWithdrawn onlyClearTime onlyOwner {
+  function clear(uint256 tokenAmount, uint256 etherAmount) external purchasersAllWithdrawn onlyClearTime onlyOwner {
     if (tokenAmount > 0) {
       token.burn(tokenAmount);
     }
@@ -247,7 +247,7 @@ contract LTOTokenSale is Ownable, ReentrancyGuard {
     }
   }
 
-  function withdrawFailed(address alternativeAddress) public onlyUserWithdrawalTime nonReentrant {
+  function withdrawFailed(address alternativeAddress) external onlyUserWithdrawalTime nonReentrant {
     require(alternativeAddress != 0x0);
     PurchaserInfo storage pi = purchaserMapping[msg.sender];
 
@@ -258,13 +258,13 @@ contract LTOTokenSale is Ownable, ReentrancyGuard {
     }
   }
 
-  function addCapFreeAddress(address capFreeAddress) public onlyCapListAddress {
+  function addCapFreeAddress(address capFreeAddress) external onlyCapListAddress {
     require(capFreeAddress != address(0));
 
     capFreeAddresses[capFreeAddress] = true;
   }
 
-  function removeCapFreeAddress(address capFreeAddress) public onlyCapListAddress {
+  function removeCapFreeAddress(address capFreeAddress) external onlyCapListAddress {
     require(capFreeAddress != address(0));
 
     capFreeAddresses[capFreeAddress] = false;
@@ -274,7 +274,7 @@ contract LTOTokenSale is Ownable, ReentrancyGuard {
     return (capFreeAddresses[capFreeAddress]);
   }
 
-  function currentBonus() public view returns(uint256) {
+  function currentBonus() external view returns(uint256) {
     return bonusPercentage.sub(bonusDecreaseRate.mul(nrOfTransactions));
   }
 }

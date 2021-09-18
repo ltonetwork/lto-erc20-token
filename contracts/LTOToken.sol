@@ -29,7 +29,7 @@ contract LTOToken is ERC20, ERC20Detailed, ERC20Burnable, ERC20Pausable, ERC20Pr
     _;
   }
 
-  function addIntermediateAddress(address _intermediate) public onlyBridge {
+  function addIntermediateAddress(address _intermediate) external onlyBridge {
     require(_intermediate != address(0));
 
     if (intermediatePending[_intermediate] == PENDING_BRIDGE) {
@@ -39,7 +39,7 @@ contract LTOToken is ERC20, ERC20Detailed, ERC20Burnable, ERC20Pausable, ERC20Pr
     }
   }
 
-  function confirmIntermediateAddress() public {
+  function confirmIntermediateAddress() external {
     require(msg.sender != address(0));
 
     if (intermediatePending[msg.sender] == PENDING_CONFIRM) {
