@@ -14,11 +14,11 @@ contract LTOTokenSale is Ownable, ReentrancyGuard {
 
   using SafeMath for uint256;
 
-  uint256 constant MINIMUM_AMOUNT = 0.1 ether;      // Minimum amount of ether to transfer
-  uint256 constant MAXIMUM_CAP_AMOUNT = 40 ether;    // Maximum amount of ether you can send with being caplisted
-  uint256 constant ETH_DECIMALS = 1 ether;           // Amount used to divide ether with to calculate proportion
-  uint256 constant LTO_ETH_DIFF_DECIMALS = 10**10;   // Amount used to get the number of desired decimals, so  convert from 18 to 8
-  uint256 constant BONUS_RATE_DIVISION = 10000;      // Amount used to divide the amount so the bonus can be calculated
+  uint256 internal constant MINIMUM_AMOUNT = 0.1 ether;      // Minimum amount of ether to transfer
+  uint256 internal constant MAXIMUM_CAP_AMOUNT = 40 ether;    // Maximum amount of ether you can send with being caplisted
+  uint256 internal constant ETH_DECIMALS = 1 ether;           // Amount used to divide ether with to calculate proportion
+  uint256 internal constant LTO_ETH_DIFF_DECIMALS = 10**10;   // Amount used to get the number of desired decimals, so  convert from 18 to 8
+  uint256 internal constant BONUS_RATE_DIVISION = 10000;      // Amount used to divide the amount so the bonus can be calculated
 
   ERC20Burnable public token;
   address public receiverAddr;

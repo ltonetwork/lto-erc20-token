@@ -8,8 +8,8 @@ import "./ERC20PreMint.sol";
 
 contract LTOToken is ERC20, ERC20Detailed, ERC20Burnable, ERC20Pausable, ERC20PreMint {
 
-  uint8 constant PENDING_BRIDGE = 1;
-  uint8 constant PENDING_CONFIRM = 2;
+  uint8 internal constant PENDING_BRIDGE = 1;
+  uint8 internal constant PENDING_CONFIRM = 2;
 
   address public bridgeAddress;
   uint256 public bridgeBalance;

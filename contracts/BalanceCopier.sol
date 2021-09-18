@@ -12,7 +12,7 @@ contract BalanceCopier is Ownable {
     ERC20Pausable public oldToken;
     ERC20PreMint public newToken;
 
-    mapping (address => bool) copied;
+    mapping (address => bool) internal copied;
 
     constructor(ERC20Pausable _oldToken, ERC20PreMint _newToken) public {
         oldToken = _oldToken;
