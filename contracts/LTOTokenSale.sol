@@ -14,11 +14,11 @@ contract LTOTokenSale is Ownable, ReentrancyGuard {
 
   using SafeMath for uint256;
 
-  uint256 constant minimumAmount = 0.1 ether;     // Minimum amount of ether to transfer
-  uint256 constant maximumCapAmount = 40 ether;  // Maximium amount of ether you can send with being caplisted
-  uint256 constant ethDecimals = 1 ether;         // Amount used to divide ether with to calculate proportion
-  uint256 constant ltoEthDiffDecimals = 10**10;   // Amount used to get the number of desired decimals, so  convert from 18 to 8
-  uint256 constant bonusRateDivision = 10000;     // Amount used to divide the amount so the bonus can be calculated
+  uint256 constant MINIMUM_AMOUNT = 0.1 ether;      // Minimum amount of ether to transfer
+  uint256 constant MAXIMUM_CAP_AMOUNT = 40 ether;    // Maximum amount of ether you can send with being caplisted
+  uint256 constant ETH_DECIMALS = 1 ether;           // Amount used to divide ether with to calculate proportion
+  uint256 constant LTO_ETH_DIFF_DECIMALS = 10**10;   // Amount used to get the number of desired decimals, so  convert from 18 to 8
+  uint256 constant BONUS_RATE_DIVISION = 10000;      // Amount used to divide the amount so the bonus can be calculated
 
   ERC20Burnable public token;
   address public receiverAddr;
@@ -146,18 +146,18 @@ contract LTOTokenSale is Ownable, ReentrancyGuard {
     assert(totalSaleAmount > 0);
 
     if (totalSaleAmount >= totalWannaBuyAmount) {
-      proportion = ethDecimals;
+      proportion = ETH_DECIMALS;
       return;
     }
-    proportion = totalSaleAmount.mul(ethDecimals).div(totalWannaBuyAmount);
+    proportion = totalSaleAmount.mul(ETH_DECIMALS).div(totalWannaBuyAmount);
   }
 
   function getSaleInfo(address purchaser) internal view returns (Purchase p) {
     PurchaserInfo storage pi = purchaserMapping[purchaser];
     return Purchase(
       pi.received,
-      pi.received.mul(proportion).div(ethDecimals),
-      pi.accounted.mul(proportion).div(ethDecimals).mul(rate).div(ltoEthDiffDecimals)
+      pi.received.mul(proportion).div(ETH_DECIMALS),
+      pi.accounted.mul(proportion).div(ETH_DECIMALS).mul(rate).div(LTO_ETH_DIFF_DECIMALS)
     );
   }
 
@@ -171,7 +171,7 @@ contract LTOTokenSale is Ownable, ReentrancyGuard {
   }
 
   function buy() payable public onlyOpenTime {
-    require(msg.value >= minimumAmount);
+    require(msg.value >= MINIMUM_AMOUNT);
 
     uint256 amount = msg.value;
     PurchaserInfo storage pi = purchaserMapping[msg.sender];
@@ -180,8 +180,8 @@ contract LTOTokenSale is Ownable, ReentrancyGuard {
       purchaserList.push(msg.sender);
     }
     uint256 totalAmount = pi.received.add(amount);
-    if (totalAmount > maximumCapAmount && !isCapFree(msg.sender)) {
-      uint256 recap = totalAmount.sub(maximumCapAmount);
+    if (totalAmount > MAXIMUM_CAP_AMOUNT && !isCapFree(msg.sender)) {
+      uint256 recap = totalAmount.sub(MAXIMUM_CAP_AMOUNT);
       amount = amount.sub(recap);
       if (amount <= 0) {
         revert();
@@ -194,11 +194,11 @@ contract LTOTokenSale is Ownable, ReentrancyGuard {
     globalAmount = globalAmount.add(amount);
     if (isBonusPeriod() && bonusDecreaseRate.mul(nrOfTransactions) < bonusPercentage) {
       uint256 percentage = bonusPercentage.sub(bonusDecreaseRate.mul(nrOfTransactions));
-      uint256 bonus = amount.div(bonusRateDivision).mul(percentage);
+      uint256 bonus = amount.div(BONUS_RATE_DIVISION).mul(percentage);
       amount = amount.add(bonus);
     }
     pi.accounted = pi.accounted.add(amount);
-    totalWannaBuyAmount = totalWannaBuyAmount.add(amount.mul(rate).div(ltoEthDiffDecimals));
+    totalWannaBuyAmount = totalWannaBuyAmount.add(amount.mul(rate).div(LTO_ETH_DIFF_DECIMALS));
     _calcProportion();
     nrOfTransactions = nrOfTransactions.add(1);
   }
