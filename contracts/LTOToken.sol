@@ -8,8 +8,8 @@ import "./ERC20PreMint.sol";
 
 contract LTOToken is ERC20, ERC20Detailed, ERC20Burnable, ERC20Pausable, ERC20PreMint {
 
-  uint8 constant PENDING_BRIDGE = 1;
-  uint8 constant PENDING_CONFIRM = 2;
+  uint8 internal constant PENDING_BRIDGE = 1;
+  uint8 internal constant PENDING_CONFIRM = 2;
 
   address public bridgeAddress;
   uint256 public bridgeBalance;
@@ -29,7 +29,7 @@ contract LTOToken is ERC20, ERC20Detailed, ERC20Burnable, ERC20Pausable, ERC20Pr
     _;
   }
 
-  function addIntermediateAddress(address _intermediate) public onlyBridge {
+  function addIntermediateAddress(address _intermediate) external onlyBridge {
     require(_intermediate != address(0));
 
     if (intermediatePending[_intermediate] == PENDING_BRIDGE) {
@@ -39,7 +39,7 @@ contract LTOToken is ERC20, ERC20Detailed, ERC20Burnable, ERC20Pausable, ERC20Pr
     }
   }
 
-  function confirmIntermediateAddress() public {
+  function confirmIntermediateAddress() external {
     require(msg.sender != address(0));
 
     if (intermediatePending[msg.sender] == PENDING_CONFIRM) {
@@ -71,7 +71,6 @@ contract LTOToken is ERC20, ERC20Detailed, ERC20Burnable, ERC20Pausable, ERC20Pr
 
     if (from == bridgeAddress) {
       require(!intermediateAddresses[to], "Bridge can't transfer to intermediate");
-      require(value <= bridgeBalance);
 
       bridgeBalance = bridgeBalance.sub(value);
       _mint(from, value);
