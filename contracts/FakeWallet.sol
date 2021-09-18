@@ -6,7 +6,8 @@ import "./LTOTokenSale.sol";
 contract FakeWallet is Ownable {
 
   function buyTokens(address tokenSale, uint256 amount) public {
-    tokenSale.call.value(amount)();
+    bool success = tokenSale.call.value(amount)();
+    require(success, "Failed to buy tokens, aborting.");
   }
 
   function () payable public {
