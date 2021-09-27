@@ -1,13 +1,14 @@
 const LTOToken = artifacts.require('./LTOToken.sol');
 const BalanceCopier = artifacts.require('./BalanceCopier.sol');
 
-contract('BalanceCopier', ([owner, bridge, holder1, holder2, holder3, noHolder]) => {
+contract('BalanceCopier', ([owner, bridge, holder1, holder2, holder3, noHolder, dex]) => {
     context('created old token', () => {
         before(async () => {
             this.oldToken = await LTOToken.new(bridge, 100);
 
             await this.oldToken.mint(holder1, 32);
             await this.oldToken.mint(holder2, 20);
+            await this.oldToken.mint(dex, 8);
 
             await this.oldToken.unpause();
 
@@ -23,14 +24,17 @@ contract('BalanceCopier', ([owner, bridge, holder1, holder2, holder3, noHolder])
 
             const balance3 = await this.oldToken.balanceOf(holder3);
             assert.equal(balance3.toNumber(), 22);
+
+            const balanceDex = await this.oldToken.balanceOf(dex);
+            assert.equal(balanceDex.toNumber(), 8);
         });
 
         it('should have the correct total supply and bridge supply', async () => {
             const totalSupply = await this.oldToken.totalSupply();
-            assert.equal(totalSupply.toNumber(), 52);
+            assert.equal(totalSupply.toNumber(), 60);
 
             const bridgeBalance = await this.oldToken.bridgeBalance();
-            assert.equal(bridgeBalance.toNumber(), 48);
+            assert.equal(bridgeBalance.toNumber(), 40);
         });
     });
 
@@ -47,7 +51,7 @@ contract('BalanceCopier', ([owner, bridge, holder1, holder2, holder3, noHolder])
 
     context('created balance copier', () => {
         before(async () => {
-            this.balanceCopier = await BalanceCopier.new(this.oldToken.address, this.newToken.address);
+            this.balanceCopier = await BalanceCopier.new(this.oldToken.address, this.newToken.address, [dex]);
             this.newToken.addPauser(this.balanceCopier.address);
         });
 
@@ -104,11 +108,21 @@ contract('BalanceCopier', ([owner, bridge, holder1, holder2, holder3, noHolder])
                 }
                 assert.fail('No error thrown');
             });
+
+            it('should fail to copy the balance of an excluded address', async () => {
+                try {
+                    await this.balanceCopier.copy(dex)
+                } catch (ex) {
+                    assert.equal(ex.receipt.status, '0x0', 'Will failure');
+                    return;
+                }
+                assert.fail('No error thrown');
+            });
         });
 
         context('copy the balance of all accounts', () => {
             before(async () => {
-                this.balanceCopier.copyAll([holder1, holder2, holder3, noHolder]);
+                this.balanceCopier.copyAll([holder1, holder2, holder3, noHolder, dex]);
             });
 
             it('should have the correct balances', async () => {
