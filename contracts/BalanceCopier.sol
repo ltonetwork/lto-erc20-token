@@ -13,10 +13,17 @@ contract BalanceCopier is Ownable {
     ERC20PreMint public newToken;
 
     mapping (address => bool) internal copied;
+    mapping (address => bool) public excluded;
 
-    constructor(ERC20Pausable _oldToken, ERC20PreMint _newToken) public {
+    constructor(ERC20Pausable _oldToken, ERC20PreMint _newToken, address[] _exclude) public {
         oldToken = _oldToken;
         newToken = _newToken;
+
+        excluded[address(_oldToken)] = true;
+
+        for (uint i=0; i < _exclude.length; i++) {
+            excluded[_exclude[i]] = true;
+        }
     }
 
     modifier whenBothPaused() {
@@ -26,6 +33,7 @@ contract BalanceCopier is Ownable {
     }
 
     function copy(address _holder) external whenBothPaused {
+        require(!excluded[_holder], 'Address is excluded');
         require(!copied[_holder], 'Already copied balance of this holder');
 
         uint256 balance = oldToken.balanceOf(_holder);
@@ -37,7 +45,7 @@ contract BalanceCopier is Ownable {
     function copyAll(address[] _holders) external whenBothPaused {
         uint length = _holders.length;
 
-        for (uint i=0; i < length; i++) if (!copied[_holders[i]]) {
+        for (uint i=0; i < length; i++) if (!copied[_holders[i]] && !excluded[_holders[i]]) {
             address holder = _holders[i];
             uint256 balance = oldToken.balanceOf(holder);
 
