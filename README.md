@@ -68,6 +68,23 @@ new ERC20 to be in paused state. The `copyAll()` method takes a list of addresse
 old contract, and mint tokens on the new contract. This function is **idempotent**; it can be called multiple times for
 the same address without side effects.
 
+#### Decentralized exchanges
+
+Holders should withdraw all LTO from decentralized exchanges and other smart contracts before version 1 is frozen.
+Minting to these contracts would result in tokens being lost.
+
+The following addresses are excluded from the balance copy
+
+Address                                    | Description
+------------------------------------------ | -----------
+0x2a0c0dbecc7e4d658f48e01e3fa353f44050c208 | IDEX 
+0x8d12a197cb00d4747a1fe03395095ce2a5cc6819 | EtherDelta
+0x9cd7403ac4856071581e1f5a298317d9a72a19cf | Uniswap V2
+0xe204a0f8d72b56ef129b913a4d737d6e800c0508 | Uniswap V3
+0xbfd181cb0c8e23b65805dded3863dce6517402a7 | VIDT staking
+
+Holders on these contracts might be able to reclaim LTO via the bridge.
+
 # Install
 ```
 npm install
