@@ -1,18 +1,19 @@
-var Token = artifacts.require("./LTOToken.sol");
-var BalanceCopier = artifacts.require("./BalanceCopier.sol");
-var config = require("../config.json");
-var tokenConfig = config.token;
-var balanceCopyConfig = config.balanceCopy;
+const Token = artifacts.require("./LTOToken.sol");
+const BalanceCopier = artifacts.require("./BalanceCopier.sol");
+const config = require("../config.json");
+const BigNumber = require("bignumber.js");
+const tokenConfig = config.token;
+const balanceCopyConfig = config.balanceCopy;
 
 function convertDecimals(number, decimals) {
   if (!decimals) {
     decimals = tokenConfig.decimals;
   }
-  return web3.toBigNumber(10).pow(decimals).mul(number);
+  return new BigNumber(10).pow(decimals).multipliedBy(number);
 }
 
 module.exports = function(deployer, network, accounts) {
-  if (!balanceCopyConfig) return;
+  if (!balanceCopyConfig || (process.env.LTO_DEPLOY || '').toLowerCase() === 'tokensale') return;
 
   const oldToken = balanceCopyConfig.oldToken;
   const exclude = balanceCopyConfig.exclude;

@@ -7,7 +7,7 @@ const { ethSendTransaction } = require('openzeppelin-solidity/test/helpers/web3'
 const Mock = require('mockjs');
 const Random = Mock.Random;
 const { increase, latest } = require('openzeppelin-solidity/test/helpers/time.js');
-const BigNumber = web3.BigNumber;
+const BigNumber = require("bignumber.js");
 const gas = 2000000;
 const sentData = [];
 const MAX_RANDOM_VALUE = 1000;
@@ -26,14 +26,14 @@ function convertDecimals(number, ether) {
   if (ether) {
     decimals = etherDecimals;
   }
-  return web3.toBigNumber(10).pow(decimals).mul(number);
+  return new BigNumber(10).pow(decimals).mul(number);
 }
 
 function deconvertDecimals(number, decimals) {
   if (!decimals) {
     decimals = tokenConfig.decimals;
   }
-  return number.div(web3.toBigNumber(10).pow(decimals));
+  return number.div(new BigNumber(10).pow(decimals));
 }
 
 function getReceiverAddr(defaultAddr) {

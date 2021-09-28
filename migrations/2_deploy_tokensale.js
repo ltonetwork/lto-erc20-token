@@ -1,14 +1,15 @@
-var Token = artifacts.require("./LTOToken.sol");
-var TokenSale = artifacts.require("./LTOTokenSale.sol");
-var config = require("../config.json");
-var tokenConfig = config.token;
-var tokenSaleConfig = config.tokenSale;
+const Token = artifacts.require("./LTOToken.sol");
+const TokenSale = artifacts.require("./LTOTokenSale.sol");
+const config = require("../config.json");
+const BigNumber = require("bignumber.js");
+const tokenConfig = config.token;
+const tokenSaleConfig = config.tokenSale;
 
 function convertDecimals(number, decimals) {
   if (!decimals) {
     decimals = tokenConfig.decimals;
   }
-  return web3.toBigNumber(10).pow(decimals).mul(number);
+  return new BigNumber(10).pow(decimals).mul(number);
 }
 
 function getReceiverAddr(defaultAddr) {
@@ -19,7 +20,7 @@ function getReceiverAddr(defaultAddr) {
 }
 
 module.exports = function(deployer, network, accounts) {
-  if (!tokenSaleConfig) return;
+  if (!tokenSaleConfig || (process.env.LTO_DEPLOY || '').toLowerCase() === 'balancecopy') return;
 
   var defaultAddr = accounts[0];
   var receiverAddr = getReceiverAddr(defaultAddr);
@@ -27,9 +28,9 @@ module.exports = function(deployer, network, accounts) {
   const maxSupply = convertDecimals(tokenConfig.maxSupply);
   var totalSaleAmount = convertDecimals(tokenSaleConfig.totalSaleAmount);
   var totalSupply = convertDecimals(tokenConfig.totalSupply);
-  var startTime = web3.toBigNumber(tokenSaleConfig.startTime);
-  var userWithdrawalDelaySec = web3.toBigNumber(tokenSaleConfig.userWithdrawalDelaySec);
-  var clearDelaySec = web3.toBigNumber(tokenSaleConfig.clearDelaySec);
+  var startTime = new BigNumber(tokenSaleConfig.startTime);
+  var userWithdrawalDelaySec = new BigNumber(tokenSaleConfig.userWithdrawalDelaySec);
+  var clearDelaySec = new BigNumber(tokenSaleConfig.clearDelaySec);
   var keepAmount = totalSupply.sub(totalSaleAmount);
   var tokenInstance = null;
   var tokenSaleInstance = null;

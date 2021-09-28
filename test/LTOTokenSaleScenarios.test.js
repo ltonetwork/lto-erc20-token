@@ -5,7 +5,7 @@ const tokenConfig = config.token;
 const tokenSaleConfig = config.tokenSale;
 const { ethSendTransaction } = require('openzeppelin-solidity/test/helpers/web3');
 const { increaseTo, latest } = require('openzeppelin-solidity/test/helpers/time.js');
-const BigNumber = web3.BigNumber;
+const BigNumber = require("bignumber.js");
 const gas = 2000000;
 
 function convertDecimals(number, ether) {
@@ -14,14 +14,14 @@ function convertDecimals(number, ether) {
   if (ether) {
     decimals = etherDecimals;
   }
-  return web3.toBigNumber(10).pow(decimals).mul(number);
+  return new BigNumber(10).pow(decimals).mul(number);
 }
 
 function deconvertDecimals(number, decimals) {
   if (!decimals) {
     decimals = tokenConfig.decimals;
   }
-  return number.div(web3.toBigNumber(10).pow(decimals));
+  return number.div(new BigNumber(10).pow(decimals));
 }
 
 function getReceiverAddr(defaultAddr) {

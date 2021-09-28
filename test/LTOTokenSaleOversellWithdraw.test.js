@@ -6,7 +6,7 @@ const tokenConfig = config.token;
 
 const { ethSendTransaction, ethGetBalance } = require('openzeppelin-solidity/test/helpers/web3');
 const { increaseTo, latest } = require('openzeppelin-solidity/test/helpers/time.js');
-const BigNumber = web3.BigNumber;
+const BigNumber = require("bignumber.js");
 const gas = 2000000;
 
 function convertDecimals(number, ether) {
@@ -15,7 +15,7 @@ function convertDecimals(number, ether) {
   if (ether) {
     decimals = etherDecimals;
   }
-  return web3.toBigNumber(10).pow(decimals).mul(number);
+  return new BigNumber(10).pow(decimals).mul(number);
 }
 
 contract('LTOTokenSale', ([owner, bridge, user1, user2, user3]) => {
@@ -144,7 +144,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3]) => {
           const remainingTokens = await this.token.balanceOf(this.tokenSale.address);
           const remainingEth = await ethGetBalance(this.tokenSale.address);
 
-          assert(remainingTokens.equals(web3.toBigNumber(0)));
+          assert(remainingTokens.equals(new BigNumber(0)));
           assert(remainingEth.equals(convertDecimals(0.375, true)));
 
           const time = await this.tokenSale.clearStartTime();
@@ -158,10 +158,10 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3]) => {
           }
 
           [withdrew, recorded, received, accounted, unreceived] = await this.tokenSale.purchaserMapping(this.wallet.address);
-          assert(unreceived.equals(web3.toBigNumber(0)));
+          assert(unreceived.equals(new BigNumber(0)));
 
           const finalRemainingEth = await ethGetBalance(this.tokenSale.address);
-          assert(finalRemainingEth.equals(web3.toBigNumber(0)));
+          assert(finalRemainingEth.equals(new BigNumber(0)));
         });
       })
     })

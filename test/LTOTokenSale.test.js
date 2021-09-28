@@ -7,7 +7,7 @@ const tokenSaleConfig = config.tokenSale;
 const { ethSendTransaction, ethGetBalance } = require('openzeppelin-solidity/test/helpers/web3');
 const constants = require('./helpers/constants');
 const { increaseTo, latest } = require('openzeppelin-solidity/test/helpers/time.js');
-const BigNumber = web3.BigNumber;
+const BigNumber = require("bignumber.js");
 const gas = 2000000;
 
 function convertDecimals(number, ether) {
@@ -16,14 +16,14 @@ function convertDecimals(number, ether) {
   if (ether) {
     decimals = etherDecimals;
   }
-  return web3.toBigNumber(10).pow(decimals).mul(number);
+  return new BigNumber(10).pow(decimals).mul(number);
 }
 
 function deconvertDecimals(number, decimals) {
   if (!decimals) {
     decimals = tokenConfig.decimals;
   }
-  return number.div(web3.toBigNumber(10).pow(decimals));
+  return number.div(new BigNumber(10).pow(decimals));
 }
 
 function getReceiverAddr(defaultAddr) {
@@ -109,7 +109,7 @@ contract('LTOTokenSale', ([owner, bridge, user1, user2, user3, user4, user5, use
           assert(amount.equals(totalSaleAmount));
 
           const actualAmount = await this.token.balanceOf(this.tokenSale.address);
-          assert(actualAmount.equals(web3.toBigNumber(0)));
+          assert(actualAmount.equals(new BigNumber(0)));
 
           assert.isFalse(await this.tokenSale.isStarted());
           assert.isFalse(await this.tokenSale.isEnded());
