@@ -9,7 +9,7 @@ function convertDecimals(number, decimals) {
   if (!decimals) {
     decimals = tokenConfig.decimals;
   }
-  return new BigNumber(10).pow(decimals).mul(number);
+  return new BigNumber(10).pow(decimals).multipliedBy(number);
 }
 
 function getReceiverAddr(defaultAddr) {
@@ -31,7 +31,7 @@ module.exports = function(deployer, network, accounts) {
   var startTime = new BigNumber(tokenSaleConfig.startTime);
   var userWithdrawalDelaySec = new BigNumber(tokenSaleConfig.userWithdrawalDelaySec);
   var clearDelaySec = new BigNumber(tokenSaleConfig.clearDelaySec);
-  var keepAmount = totalSupply.sub(totalSaleAmount);
+  var keepAmount = totalSupply.minus(totalSaleAmount);
   var tokenInstance = null;
   var tokenSaleInstance = null;
 
