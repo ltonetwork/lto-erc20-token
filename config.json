@@ -5,7 +5,8 @@
         "symbol" : "LTO",
         "decimals" : 8,
         "bridgeAddr": "0xb950BE3e471B3A6cf3a45Fb341F2606a0B147B8F",
-        "maxSupply": 500000000
+        "maxSupply": 500000000,
+        "oldToken": "0x3db6ba6ab6f95efed1a6e794cad492faaabf294d"
     },
     "tokenSale": {
         "receiverAddr" : null,
@@ -19,22 +20,5 @@
         "startTime" : 1545044400,
         "userWithdrawalDelaySec" : 86400,
         "clearDelaySec" : 604800
-    },
-    "balanceCopy": {
-        "oldToken": "0x3db6ba6ab6f95efed1a6e794cad492faaabf294d",
-        "exclude": [
-            "0x2a0c0dbecc7e4d658f48e01e3fa353f44050c208",
-            "0x8d12a197cb00d4747a1fe03395095ce2a5cc6819",
-            "0x9cd7403ac4856071581e1f5a298317d9a72a19cf",
-            "0xe204a0f8d72b56ef129b913a4d737d6e800c0508",
-            "0xbfd181cb0c8e23b65805dded3863dce6517402a7"
-        ],
-        "_exclude_": [
-            "0x2a0...208 = IDEX",
-            "0x8d1...819 = EtherDelta",
-            "0x9cd...9cf = Uniswap V2",
-            "0xe20...508 = Uniswap V3",
-            "0xbfd...2a7 = VIDT staking"
-        ]
     }
 }
