@@ -50,7 +50,3 @@ fi
 truffle version
 
 node_modules/.bin/truffle test --network test test/LTOToken.test.js
-node_modules/.bin/truffle test --network test test/LTOTokenSale.test.js
-node_modules/.bin/truffle test --network test test/LTOTokenSaleRandom.test.js
-node_modules/.bin/truffle test --network test test/LTOTokenSaleScenarios.test.js
-node_modules/.bin/truffle test --network test test/BalanceCopier.test.js
