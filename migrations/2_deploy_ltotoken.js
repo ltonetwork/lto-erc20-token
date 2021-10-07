@@ -1,5 +1,4 @@
 const Token = artifacts.require("./LTOToken.sol");
-const BalanceCopier = artifacts.require("./BalanceCopier.sol");
 const config = require("../config.json");
 const BigNumber = require("bignumber.js");
 const tokenConfig = config.token;
