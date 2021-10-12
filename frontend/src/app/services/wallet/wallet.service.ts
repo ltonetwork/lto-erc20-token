@@ -78,7 +78,6 @@ export class WalletService {
 
     console.log('Balance: ', balance);
 
-    // @todo: maybe use toFixed(2)?
-    return (balance / 100000000).toString();
+    return (balance / 100000000).toFixed(2);
   }
 }
