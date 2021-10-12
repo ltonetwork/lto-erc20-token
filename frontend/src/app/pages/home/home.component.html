@@ -1,9 +1,17 @@
-<div id="home">
-  <div *ngIf="balance">
+<div id="home" *ngIf="balance">
+  <div id="balance-v1">
     <mat-card>
       <img src="assets/lto-logo-big.png" alt="LTO Logo" />
       <h1>{{ balance }}</h1>
       <span>LTO ERC-20 <strong>V1</strong></span>
+    </mat-card>
+  </div>
+  <button mat-flat-button color="accent" disabled>Swap >></button>
+  <div id="balance-v2">
+    <mat-card>
+      <img src="assets/lto-logo-big.png" alt="LTO Logo" />
+      <h1>COMING SOON</h1>
+      <span>LTO ERC-20 <strong>V2</strong></span>
     </mat-card>
   </div>
 </div>

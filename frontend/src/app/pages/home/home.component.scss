@@ -9,6 +9,22 @@
     top: 14%;
   }
 
+  button {
+    min-width: 200px;
+    min-height: 60px;
+    font-size: large;
+    position: absolute;
+    top: 22%;
+  }
+
+  #balance-v1 {
+    left: 30%;
+  }
+
+  #balance-v2 {
+    right: 30%;
+  }
+
   mat-card {
     display: flex;
     flex-direction: column;
