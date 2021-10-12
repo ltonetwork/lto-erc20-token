@@ -23,7 +23,9 @@ To swap ERC20 LTO to mainnet LTO, the bridge will create a new ethereum account 
 address on the smart contract. Tokens transferred to an intermediate address are automatically burned. The bridge
 releases the amount of burned tokens from the bridge wallet and sends them to the recipient mainnet address.
 
-## Token sale
+## Version 1
+
+**[Source code of version 1](https://github.com/ltonetwork/lto-erc20-token/tree/v1.0)**
 
 The initial public sale of LTO tokens is done using the LTO ERC20 tokens using the token sale smart contract. During
 the token, a limited supply of mainnet LTO tokens by the bridge. For this amount, ERC20 tokens are minted by the ERC20
@@ -32,58 +34,23 @@ contract and send to the token sale contract.
 The token sale has a limited run time (in number of blocks). Tokens that remain unsold after the sale has ended are
 burned.
 
-### Capped purchase
-
-By default, sales are capped to 40 ETH per ethereum address. To purchase more LTO during the sale, the address must
-be registered as uncapped address. Potential buyers need to go through an KYC/AML procedure to be eligible for an
-uncapped purchase.
-
-### Bonus period
-
-For the first sales of the token sale contract, accounts will receive a bonus percentage. This bonus decreases
-linearly after each purchase. This bonus is only awarded at the start of the token sale, for a limited period of
-time / blocks.
-
 ## Version 2
 
 Version 1 of the LTO ERC20 smart contract allowed the bridge application to add any address as intermediate wallet.
 Potentially it could add addresses not created by the bridge, causing tokens send to that address to be burned. This
 has been resolved in version 2 of the contract, as the newly create account must confirm it's an intermediate address.
 
-### Balance copy
+### Token swap
 
 Since it's impossible to modify a smart contract once it's published, version 1 is replaced by version 2, resulting in
 a new token address.
 
-Version 2 of the smart contract is started in a paused state, which means it doesn't allow any transfers. During this
-state, tokens can be pre-minted. Pre-minting is used to copy the balances from the old (version 1) contract to the new
-(version 2) contract. Once the balances are copied, the new ERC20 contract is unpauses, after which it's no longer
-possible to pre-mint.
+The old LTO ERC20 tokens can be swapped with new tokens using the `swap()` method of the LTO contract v2. To do this the
+holder first need to set an allowance using the `approve()` method on the old contract. The spender will the new
+contract and the amount should be the full balance of the holder.
 
-The old LTO ERC20 contract is halted using the `pause()` method, preventing balance changes while copying. Halting the
-contract also ensures the old ERC20 token can no longer be traded / used.
-
-The `BalanceCopier` contract is added as maintainer (pauser) of the new ERC20 contract. It requires both the old and
-new ERC20 to be in paused state. The `copyAll()` method takes a list of addresses, obtain the account balance from the
-old contract, and mint tokens on the new contract. This function is **idempotent**; it can be called multiple times for
-the same address without side effects.
-
-#### Decentralized exchanges
-
-Holders should withdraw all LTO from decentralized exchanges and other smart contracts before version 1 is frozen.
-Minting to these contracts would result in tokens being lost.
-
-The following addresses are excluded from the balance copy
-
-Address                                    | Description
------------------------------------------- | -----------
-0x2a0c0dbecc7e4d658f48e01e3fa353f44050c208 | IDEX 
-0x8d12a197cb00d4747a1fe03395095ce2a5cc6819 | EtherDelta
-0x9cd7403ac4856071581e1f5a298317d9a72a19cf | Uniswap V2
-0xe204a0f8d72b56ef129b913a4d737d6e800c0508 | Uniswap V3
-0xbfd181cb0c8e23b65805dded3863dce6517402a7 | LTO Farm
-
-Holders on these contracts might be able to reclaim LTO via the bridge.
+Upon calling `swap()` the new contract will burn the allowance of the old tokens and mint the exact amount of new tokens
+for the holder.
 
 # Install
 ```
@@ -94,24 +61,11 @@ npm install
 
 Edit `config.json`.
 
-_The configuration should either have a `tokenSale` entry or a `balanceCopy` entry, but not both._
-
 ### token
 
 The `token` entry has properties for the LTOToken smart contract. `maxSupply` should be 500 million; the number of LTO
 tokens minted during genesis of LTO Network. `totalSupply` is the amount of ERC20 tokens minted and used for the token
 sale.
-
-### tokenSale
-
-The `tokenSale` entry has properties for the LTOTokenSale smart contract. The `bonusPercentage` is x10000, so `500`
-means `5%`.
-
-### balanceCopy
-
-The `balanceCopy` entry has properties for copying the balances of the old contract to the new one. If it's specified
-in the configuration the token sale contract is not published / used. All balances are copied through pre-minting and
-there is no token sale.
 
 # Test
 Testing requires an ethereum network to be running.
