@@ -57,9 +57,17 @@
 /***************************************************************************************************
  * Zone JS is required by default for Angular itself.
  */
-import 'zone.js';  // Included with Angular CLI.
-
+import 'zone.js'; // Included with Angular CLI.
 
 /***************************************************************************************************
  * APPLICATION IMPORTS
  */
+// Fix for Web3Modal (for some reason, one of the dependencies of that package uses node.js stuff)
+// https://github.com/elastic/elasticsearch-js/issues/681#issuecomment-586716869
+(window as any).global = window;
+global.Buffer = global.Buffer || require('buffer').Buffer;
+global.process = {
+  env: { DEBUG: undefined },
+  version: [],
+  nextTick: require('next-tick'),
+} as any;

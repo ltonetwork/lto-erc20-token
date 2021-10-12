@@ -17,9 +17,18 @@
     "target": "es2017",
     "module": "es2020",
     "lib": ["es2018", "dom"],
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
     "paths": {
       "@app/*": ["src/app/*"],
-      "@env/*": ["src/environments/*"]
+      "@assets/*": ["src/assets/*"],
+      "@env/*": ["src/environments/*"],
+      "crypto": ["node_modules/crypto-js"],
+      "stream": ["node_modules/stream-browserify"],
+      "http": ["node_modules/stream-http"],
+      "https": ["node_modules/https-browserify"],
+      "os": ["node_modules/os-browserify/browser"]
     }
   },
   "angularCompilerOptions": {

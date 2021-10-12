@@ -1,1 +1,16 @@
+<mat-toolbar>
+  <div id="brand">
+    <a routerLink="/">
+      <img src="assets/lto-logo.png" alt="LTO Network" />
+      <strong>LTO</strong> Network
+    </a>
+  </div>
+
+  <span class="spacer"></span>
+
+  <button mat-icon-button *ngIf="connected$ | async" (click)="disconnect()">
+    <mat-icon>logout</mat-icon>
+  </button>
+</mat-toolbar>
+
 <router-outlet></router-outlet>
