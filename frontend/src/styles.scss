@@ -3,7 +3,32 @@
 
 @include mat.core();
 
-$lto-erc20-primary: mat-palette($mat-deep-purple, 800);
+$lto-palette: (
+  900: #321b92,
+  800: #4627a0,
+  700: #522da8,
+  600: #5f35b1,
+  500: #673ab7,
+  400: #7f57c2,
+  300: #9675cd,
+  200: #b39ddb,
+  100: #d1c4e9,
+  50: #ede7f6,
+  contrast: (
+    900: white,
+    800: white,
+    700: white,
+    600: white,
+    500: white,
+    400: white,
+    300: white,
+    200: rgba(black, 0.87),
+    100: rgba(black, 0.87),
+    50: rgba(black, 0.87),
+  )
+);
+
+$lto-erc20-primary: mat-palette($lto-palette, 500);
 $lto-erc20-accent: mat-palette($mat-pink, A200, A100, A400);
 $lto-erc20-warn: mat-palette($mat-red);
 $lto-erc20-theme: mat-light-theme(

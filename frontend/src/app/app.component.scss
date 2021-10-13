@@ -1,35 +1,26 @@
 mat-toolbar {
   background: rgb(23, 5, 75);
-  min-height: 20%;
-  position: absolute;
+  height: 128px;
+  font-size: 16px;
+  width: 100%;
 
-  .spacer {
-    flex: 1 1 auto;
-  }
-
-  #header-text {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
+  .container {
+    -webkit-box-align: center;
     align-items: center;
-    justify-content: center;
-
-    h1 {
-      color: #fff;
-      font-size: xx-large;
-    }
-
-    h3 {
-      color: #5a6169;
-      font-size: large;
-    }
+    display: flex;
+    -webkit-box-pack: justify;
+    justify-content: space-between;
+    box-sizing: border-box;
+    margin: 0 auto;
+    max-width: 1200px;
+    padding: 0 24px;
+    width: 100%;
   }
 
   button {
-    position: absolute;
-    top: 30px;
-    right: 20%;
-    width: auto;
+    display: block;
+    width: 30px;
+    justify-content: flex-end;
 
     mat-icon {
       color: #fff;
@@ -38,10 +29,10 @@ mat-toolbar {
 }
 
 #brand {
-  position: absolute;
-  top: 30px;
-  left: 20%;
-  width: auto;
+  font-size: 1.6em;
+  font-weight: 100;
+  width: 360px;
+  text-align: center;
 
   a {
     text-decoration: none;
@@ -59,6 +50,37 @@ mat-toolbar {
   }
 
   a img {
-    height: 33px;
+    height: 40px;
+    margin-right: 12px;
+  }
+}
+
+#content {
+  min-height: calc(100vh - 256px);
+}
+
+footer {
+  -webkit-box-align: center;
+  align-items: center;
+  display: flex;
+  -webkit-box-pack: center;
+  justify-content: center;
+  height: 128px;
+  width: 100%;
+  font-weight: 300;
+
+  nav {
+    font-size: 16px;
+
+    a {
+      color: rgb(171, 172, 173);
+      padding: 0 16px;
+      text-decoration: none;
+
+      img {
+        height: 19px;
+        vertical-align: -2px;
+      }
+    }
   }
 }

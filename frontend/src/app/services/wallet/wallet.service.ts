@@ -17,7 +17,6 @@ const Web3Modal = window.Web3Modal.default;
 export class WalletService {
   public web3js: any;
   public provider: any;
-  public accounts: any;
   public connected$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(
     false
   );
@@ -47,8 +46,6 @@ export class WalletService {
 
     this.web3js = new Web3(this.provider);
 
-    this.accounts = await this.web3js.eth.getAccounts();
-
     this.connected$.next(true);
   }
 
@@ -59,13 +56,15 @@ export class WalletService {
 
     this.provider = null;
     this.web3js = null;
-    this.accounts = null;
 
     this.connected$.next(false);
   }
 
   async getBalance(): Promise<string> {
-    if (!this.web3js || !this.accounts) throw Error('Not connected');
+    if (!this.web3js) throw Error('Not connected');
+
+    const account = this.web3js.currentProvider.selectedAddress;
+    if (!account) throw Error('No account');
 
     const LTOContract = new this.web3js.eth.Contract(
       ltoContractABI,
@@ -73,8 +72,7 @@ export class WalletService {
     );
 
     const balance = await LTOContract.methods
-      .balanceOf('0x3db6ba6ab6f95efed1a6e794cad492faaabf294d')
-      .call({ from: this.accounts[0] });
+      .balanceOf(account).call();
 
     console.log('Balance: ', balance);
 
