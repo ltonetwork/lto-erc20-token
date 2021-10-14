@@ -13,6 +13,6 @@ export class LoginComponent {
 
   async connect(): Promise<void> {
     await this.walletService.connect();
-    this.router.navigate(['']);
+    this.router.navigate([''], { skipLocationChange: true });
   }
 }

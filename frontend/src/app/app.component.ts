@@ -19,6 +19,6 @@ export class AppComponent {
 
   async disconnect(): Promise<void> {
     await this.walletService.disconnect();
-    this.router.navigate(['login']);
+    this.router.navigate(['login'], { skipLocationChange: true });
   }
 }

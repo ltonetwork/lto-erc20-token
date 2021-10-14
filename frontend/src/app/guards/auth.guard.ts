@@ -16,7 +16,7 @@ export class AuthGuard implements CanActivate {
     return this.walletService.connected$.pipe(
       tap((connected) => {
         if (!connected) {
-          this.router.navigate(['login']);
+          this.router.navigate(['login'], { skipLocationChange: true });
         }
       })
     );

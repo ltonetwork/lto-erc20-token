@@ -15,7 +15,6 @@ const Web3Modal = window.Web3Modal.default;
   providedIn: 'root',
 })
 export class WalletService {
-  public web3js: any;
   public provider: any;
   public connected$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(
     false
@@ -44,7 +43,17 @@ export class WalletService {
 
     this.provider = await this.web3Modal.connect();
 
-    this.web3js = new Web3(this.provider);
+    this.provider.on('accountsChanged', () => {
+      this.getBalance();
+    });
+
+    this.provider.on('chainChanged', () => {
+      this.getBalance();
+    });
+
+    this.provider.on('networkChanged', () => {
+      this.getBalance();
+    });
 
     this.connected$.next(true);
   }
@@ -55,26 +64,27 @@ export class WalletService {
     this.web3Modal.clearCachedProvider();
 
     this.provider = null;
-    this.web3js = null;
 
     this.connected$.next(false);
   }
 
   async getBalance(): Promise<string> {
-    if (!this.web3js) throw Error('Not connected');
+    const web3js = new Web3(this.provider);
 
-    const account = this.web3js.currentProvider.selectedAddress;
+    if (!web3js) throw Error('Not connected');
+
+    // does not return all accounts, only the selected account (in an array)
+    const accounts = await web3js.eth.getAccounts();
+    const account = accounts[0];
+
     if (!account) throw Error('No account');
 
-    const LTOContract = new this.web3js.eth.Contract(
-      ltoContractABI,
+    const LTOContract = new web3js.eth.Contract(
+      ltoContractABI as any,
       '0x3db6ba6ab6f95efed1a6e794cad492faaabf294d'
     );
 
-    const balance = await LTOContract.methods
-      .balanceOf(account).call();
-
-    console.log('Balance: ', balance);
+    const balance = await LTOContract.methods.balanceOf(account).call();
 
     return (balance / 100000000).toFixed(2);
   }
