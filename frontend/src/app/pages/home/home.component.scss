@@ -46,7 +46,7 @@
 
     .icon:after {
       font-weight: bold;
-      content: '➔';
+      content: "➔";
     }
   }
 
@@ -88,4 +88,11 @@
       }
     }
   }
+}
+
+#loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
 }
