@@ -1,0 +1,36 @@
+<mat-toolbar>
+  <div class="container">
+    <div id="brand">
+      <a [routerLink]="['/']" rskipLocationChange>
+        <img src="assets/lto-logo.png" alt="LTO Network" />
+        <strong>LTO</strong> Token swap
+      </a>
+    </div>
+
+    <button mat-icon-button *ngIf="connected$ | async" (click)="disconnect()">
+      <mat-icon>logout</mat-icon>
+    </button>
+  </div>
+</mat-toolbar>
+
+<div id="content">
+  <router-outlet></router-outlet>
+</div>
+
+<footer>
+  <nav>
+    <a
+      target="_blank"
+      href="https://etherscan.io/token/0x3db6ba6ab6f95efed1a6e794cad492faaabf294d#code"
+      >v1 contract</a
+    >
+    <a
+      target="_blank"
+      href="https://etherscan.io/token/0xd01409314acb3b245cea9500ece3f6fd4d70ea30"
+      >v2 contract</a
+    >
+    <a target="_blank" href="https://github.com/ltonetwork/lto-erc20-token">
+      <img src="assets/github.png" alt="Project GitHub" />
+    </a>
+  </nav>
+</footer>

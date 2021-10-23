@@ -1,0 +1,61 @@
+@use "~@angular/material" as mat;
+@import "~@angular/material/theming";
+
+@include mat.core();
+
+$lto-palette: (
+  900: #321b92,
+  800: #4627a0,
+  700: #522da8,
+  600: #5f35b1,
+  500: #673ab7,
+  400: #7f57c2,
+  300: #9675cd,
+  200: #b39ddb,
+  100: #d1c4e9,
+  50: #ede7f6,
+  contrast: (
+    900: white,
+    800: white,
+    700: white,
+    600: white,
+    500: white,
+    400: white,
+    300: white,
+    200: rgba(black, 0.87),
+    100: rgba(black, 0.87),
+    50: rgba(black, 0.87),
+  )
+);
+
+$lto-erc20-primary: mat-palette($lto-palette, 500);
+$lto-erc20-accent: mat-palette($mat-pink, A200, A100, A400);
+$lto-erc20-warn: mat-palette($mat-red);
+$lto-erc20-theme: mat-light-theme(
+  $lto-erc20-primary,
+  $lto-erc20-accent,
+  $lto-erc20-warn
+);
+
+@include mat.all-component-themes($lto-erc20-theme);
+
+body,
+html {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: #f5f6f8;
+  color: #5a6169;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 400;
+}
