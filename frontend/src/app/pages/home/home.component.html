@@ -7,22 +7,35 @@
   <div id="balance-v1">
     <mat-card>
       <img src="assets/lto-logo.png" alt="LTO Logo" />
-      <h1>{{ tokens.v1 }}</h1>
+      <h1>{{ tokens.v1.value }}</h1>
       <span>LTO ERC-20 <strong>V1</strong></span>
+      <span
+        >Allowance: <strong>{{ tokens.allowance.value }}</strong></span
+      >
+      <button
+        mat-flat-button
+        color="primary"
+        (click)="approve()"
+        [disabled]="
+          !tokens || tokens.allowance.raw === tokens.v1.raw || loading
+        "
+      >
+        Approve
+      </button>
     </mat-card>
   </div>
   <button
     mat-flat-button
     color="primary"
     (click)="swap()"
-    [disabled]="swapDisabled"
+    [disabled]="!tokens || tokens.allowance.raw <= 0 || loading"
   >
     Swap <span class="icon"></span>
   </button>
   <div id="balance-v2">
     <mat-card>
       <img src="assets/lto-logo.png" alt="LTO Logo" />
-      <h1>{{ tokens.v2 }}</h1>
+      <h1>{{ tokens.v2.value }}</h1>
       <span>LTO ERC-20 <strong>V2</strong></span>
     </mat-card>
   </div>
