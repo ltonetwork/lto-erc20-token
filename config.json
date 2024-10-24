@@ -4,9 +4,9 @@
         "name" : "LTO Network Token",
         "symbol" : "LTO",
         "decimals" : 8,
-        "bridgeAddr": "0xb950BE3e471B3A6cf3a45Fb341F2606a0B147B8F",
+        "bridgeAddr": "0xD3dA48C1035D64D17c63eE07A3351CB0FfB47DDE",
         "maxSupply": 500000000,
-        "oldToken": "0x3db6ba6ab6f95efed1a6e794cad492faaabf294d"
+        "oldToken": "0x0000000000000000000000000000000000000000"
     },
     "tokenSale": {
         "receiverAddr" : null,

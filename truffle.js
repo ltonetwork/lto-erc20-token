@@ -40,6 +40,15 @@ module.exports = {
             },
             network_id: 42
         },
+        sepolia: {
+            provider: function() {
+                return new HDWalletProvider(
+                    process.env.MNEMONIC,
+                    `https://sepolia.infura.io/v3/${process.env.INFURA_ID}`
+                )
+            },
+            network_id: 11155111
+        },
         bsc: {
             network_id: 56
         }

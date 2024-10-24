@@ -19,7 +19,7 @@
     "mockjs": "^1.0.1-beta3",
     "moment": "^2.22.2",
     "sleep-promise": "^2.0.0",
-    "solidity-coverage": "^0.5.11",
+    "solidity-coverage": "^0.8.11",
     "truffle": "^5.1.52",
     "truffle-plugin-verify": "^0.5.11"
   },
